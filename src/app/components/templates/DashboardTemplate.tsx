@@ -1,12 +1,9 @@
-import { ModeToggle } from "@atoms/theme-toggle";
+import DashboardHeader from "../organism/DashboardHeader";
 
 const DashboardTemplate = () => {
   return (
-    <div className="min-h-screen dark:bg-gray-900 flex items-center justify-center relative">
-      <div className="absolute top-4 right-4">
-        <ModeToggle />
-      </div>
-
+    <div className="bg-primary dark:bg-gray-900 min-h-screen">
+      <DashboardHeader />
     </div>
   );
 };

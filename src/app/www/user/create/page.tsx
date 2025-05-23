@@ -1,4 +1,4 @@
-import UserRegisterTemplate from '../components/templates/UserRegisterTemplate';
+import UserRegisterTemplate from '../../../components/templates/UserRegisterTemplate';
 
 const UserRegisterPage = () => {
   return <UserRegisterTemplate />;

@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@atoms/button";
-import { Input } from "@atoms/input";
-import { Label } from "@atoms/label";
+import { Button } from "@/app/components/atoms/ButtonComponent";
+import { Input } from "@/app/components/atoms/InputComponent";
+import { Label } from "@/app/components/atoms/LabelComponent";
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@atoms/card";
+} from "@/app/components/atoms/CardComponent";
 import { useState } from "react";
 
 const LoginForm = () => {

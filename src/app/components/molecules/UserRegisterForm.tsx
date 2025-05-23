@@ -1,7 +1,7 @@
 "use client";
 
-import { Input } from "@atoms/input";
-import { Label } from "@atoms/label";
+import { Input } from "@/app/components/atoms/InputComponent";
+import { Label } from "@/app/components/atoms/LabelComponent";
 import {
   Select,
   SelectContent,
@@ -10,14 +10,14 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@atoms/select";
+} from "@/app/components/atoms/SelectComponent";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@atoms/card";
+} from "@/app/components/atoms/CardComponent";
 import { useState } from "react";
 import UserRegisterFormButtons from "./UserRegisterFormButtons";
 

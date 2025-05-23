@@ -1,17 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@atoms/button";
+import { Button } from "@/app/components/atoms/ButtonComponent";
 
 const UserRegisterFormButtons = () => {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push("/login");
+    router.push("/www/login");
   };
 
   const handleSubmit = () => {
-    router.push("/dashboard");
+    router.push("/www/dashboard");
   };
 
   return (

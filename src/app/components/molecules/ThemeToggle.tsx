@@ -4,15 +4,15 @@ import * as React from "react"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
-import { Button } from "@/app/components/atoms/button"
+import { Button } from "@/app/components/atoms/ButtonComponent"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/app/components/atoms/dropdown-menu"
+} from "@/app/components/atoms/DropdownMenuComponent"
 
-export function ModeToggle() {
+export function ThemeToggle() {
   const { setTheme } = useTheme()
 
   return (
