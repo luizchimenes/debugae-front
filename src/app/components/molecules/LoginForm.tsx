@@ -6,9 +6,6 @@ import { Label } from "@/app/components/atoms/LabelComponent";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardFooter,
 } from "@/app/components/atoms/CardComponent";
 import { useState } from "react";
@@ -45,11 +42,7 @@ const LoginForm = () => {
             <hr />
             <CardFooter className="flex justify-between">
               <Button type="submit">Entrar</Button>
-              <a
-                href="/reset-password" 
-              >
-                Esqueci minha senha
-              </a>
+              <a href="/reset-password">Esqueci minha senha</a>
             </CardFooter>
           </div>
         </form>

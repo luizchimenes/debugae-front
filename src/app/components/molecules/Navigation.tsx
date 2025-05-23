@@ -17,12 +17,12 @@ import {
 const components: { title: string; href: string; description: string }[] = [
   {
     title: "Cadastrar novo defeito",
-    href: "",
+    href: "/www/bugs/create",
     description: "Cadastre um novo defeito em um projeto específico",
   },
   {
     title: "Meus defeitos",
-    href: "/docs/primitives/hover-card",
+    href: "/www/bugs/view",
     description:
       "Visualize todos os defeitos em que você é o principal responsável",
   },

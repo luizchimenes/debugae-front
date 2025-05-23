@@ -2,7 +2,7 @@ import DashboardHeader from "../organism/DashboardHeader";
 
 const DashboardTemplate = () => {
   return (
-    <div className="bg-primary dark:bg-gray-900 min-h-screen">
+    <div className="bg-gradient-main dark:bg-gradient-main min-h-screen">
       <DashboardHeader />
     </div>
   );

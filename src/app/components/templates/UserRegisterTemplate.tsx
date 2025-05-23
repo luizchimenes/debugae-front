@@ -5,7 +5,7 @@ import { ThemeToggle } from "../molecules/ThemeToggle";
 
 const UserRegisterTemplate = () => {
   return (
-    <div className="min-h-screen bg-primary dark:bg-gray-900 flex items-center justify-center relative">
+    <div className="min-h-screen bg-gradient-main dark:bg-gradient-main flex items-center justify-center relative">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>

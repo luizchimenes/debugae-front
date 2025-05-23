@@ -76,6 +76,12 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.606 0.25 292.717);
+  --background-gradient: linear-gradient(
+    135deg,
+    oklch(0.60 0.3 275) 0%,
+    oklch(0.62 0.27 295) 50%,
+    oklch(0.64 0.25 315) 100%
+  );
 }
 
 .dark {
@@ -110,8 +116,12 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.541 0.281 293.009);
+  --background-gradient: linear-gradient(
+    135deg,
+    oklch(0.15 0.1 275),
+    oklch(0.25 0.05 280)
+  );
 }
-
 
 @layer base {
   * {
@@ -119,5 +129,13 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-main {
+    background-image: var(--background-gradient);
+    background-size: cover;
+    background-attachment: fixed;
   }
 }
