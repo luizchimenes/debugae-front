@@ -10,7 +10,7 @@ const UserRegisterTemplate = () => {
         <ThemeToggle />
       </div>
 
-      <Card className="w-[1300px] p-8 dark:bg-gray-800 rounded-lg shadow-md border border-1 border-primary">
+      <Card className="w-full max-w-[1350px] mx-auto p-8 dark:bg-gray-800 rounded-lg shadow-md border border-primary">
         <CardHeader>
           <CardTitle>Cadastrar novo usuário</CardTitle>
           <CardDescription>
@@ -18,7 +18,8 @@ const UserRegisterTemplate = () => {
           </CardDescription>
         </CardHeader>
         <UserRegisterForm />
-      </Card> 
+      </Card>
+      <ThemeToggle />
     </div>
   );
 };

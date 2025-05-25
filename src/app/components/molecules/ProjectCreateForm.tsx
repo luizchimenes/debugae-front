@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { Textarea } from "../atoms/TextAreaComponent";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
+import { Button } from "../atoms";
 
 const ProjectCreateForm = () => {
   return (
@@ -33,7 +34,6 @@ const ProjectCreateForm = () => {
             <Label htmlFor="projectDescription">Descrição do Projeto</Label>
             <Textarea id="projectDescription" />
           </div>
-          <hr className="my-4" />
         </form>
       </Card>
       <Card className="p-6 mt-4 dark:bg-gray-800 rounded-lg shadow-md dark:border dark:border-1 border-primary">
@@ -52,14 +52,15 @@ const ProjectCreateForm = () => {
             </div>
             <div className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="projectName">Contribuintes do Projeto</Label>
-              <ScrollArea className="whitespace-nowrap rounded-md border">
-
-              </ScrollArea>
+              <ScrollArea className="whitespace-nowrap rounded-md border"></ScrollArea>
             </div>
           </div>
-          <hr className="my-4" />
         </form>
       </Card>
+      <div className="flex justify-between mt-6">
+        <Button variant="outline">Voltar</Button>
+        <Button type="button">Cadastrar</Button>
+      </div>
     </div>
   );
 };
