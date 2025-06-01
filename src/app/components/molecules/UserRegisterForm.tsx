@@ -19,7 +19,10 @@ import {
   CardDescription,
 } from "@/app/components/atoms/CardComponent";
 import { useState } from "react";
-import UserRegisterFormButtons from "./UserRegisterFormButtons";
+import { Button } from "../atoms";
+import { useRouter } from "next/navigation";
+import { UserService } from "@/app/services/userService";
+import { AuthService } from "@/app/services/authService";
 
 const UserRegisterForm = () => {
   const [firstName, setFirstName] = useState("");
@@ -28,6 +31,35 @@ const UserRegisterForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [department, setDepartment] = useState("");
+  const [position, setPosition] = useState("");
+
+  const router = useRouter();
+
+  const handleBack = () => {
+    router.push("/www/login");
+  };
+
+  const handleSubmit = () => {
+    if (password !== confirmPassword) {
+      alert("As senhas não coincidem.");
+      return;
+    }
+
+    UserService.create({
+      firstName,
+      lastName,
+      userName,
+      email,
+      password,
+      department,
+      position,
+    });
+
+    alert("Usuário cadastrado com sucesso!");
+    AuthService.login(email, password);
+    router.push("/www/dashboard");
+  };
 
   return (
     <div>
@@ -122,7 +154,7 @@ const UserRegisterForm = () => {
           <div className="flex w-full gap-4">
             <div className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="department">Departamento</Label>
-              <Select>
+              <Select value={department} onValueChange={setDepartment} required>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione seu departamento" />
                 </SelectTrigger>
@@ -137,9 +169,9 @@ const UserRegisterForm = () => {
             </div>
             <div className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="position">Cargo</Label>
-              <Select>
+              <Select value={position} onValueChange={setPosition} required>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione seu cargo" />
+                  <SelectValue placeholder="Selecione seu cargo" /> 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -154,7 +186,14 @@ const UserRegisterForm = () => {
           </div>
         </CardContent>
       </Card>
-    <UserRegisterFormButtons />
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={handleBack}>
+          Voltar
+        </Button>
+        <Button type="button" onClick={handleSubmit}>
+          Cadastrar
+        </Button>
+      </div>
     </div>
   );
 };

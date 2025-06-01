@@ -1,7 +1,7 @@
-import { Card, CardHeader, CardTitle } from "../atoms";
-import { CardDescription } from "../atoms/CardComponent";
-import UserRegisterForm from "../molecules/UserRegisterForm";
-import { ThemeToggle } from "../molecules/ThemeToggle";
+import { Card, CardHeader, CardTitle } from "../../atoms";
+import { CardDescription } from "../../atoms/CardComponent";
+import UserRegisterForm from "../../molecules/UserRegisterForm";
+import { ThemeToggle } from "../../molecules/ThemeToggle";
 
 const UserRegisterTemplate = () => {
   return (

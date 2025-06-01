@@ -34,10 +34,11 @@ export function Navigation() {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/www/dashboard" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Menu Inicial
-              </NavigationMenuLink>
+            <Link
+              href="/www/dashboard"
+              className={navigationMenuTriggerStyle()}
+            >
+              Menu Inicial
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
@@ -47,7 +48,7 @@ export function Navigation() {
                 <ListItem href="/www/project/create" title="Novo projeto">
                   Crie um novo projeto
                 </ListItem>
-                <ListItem title="Meus projetos">
+                <ListItem href="/www/project/list" title="Meus projetos">
                   Visualize e gerencie os projetos em que você participa
                 </ListItem>
               </ul>
@@ -80,10 +81,11 @@ export function Navigation() {
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Sobre
-              </NavigationMenuLink>
+            <Link
+              href="/www/about"
+              className={navigationMenuTriggerStyle()}
+            >
+              Sobre
             </Link>
           </NavigationMenuItem>
         </NavigationMenuList>

@@ -1,4 +1,4 @@
-import BugCreateTemplate from "@/app/components/templates/BugCreateTemplate";
+import BugCreateTemplate from "@/app/components/templates/bug/BugCreateTemplate";
 
 const BugCreatePage = () => {
   return <BugCreateTemplate />;
