@@ -13,14 +13,15 @@ import {
   SelectValue,
 } from "../atoms/SelectComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
-import { saveBug } from "@/app/services/bugService";
-import { User } from "@/app/services/userService";
+import { User, UserService } from "@/app/services/userService";
 import { AuthService } from "@/app/services/authService";
 import { Project, ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
+import { BugService } from "@/app/services/bugService";
 
 const BugCreateForm = () => {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [projectContributors, setProjectContributors] = useState<User[]>([]);
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
   const [environment, setEnvironment] = useState("");
@@ -32,6 +33,7 @@ const BugCreateForm = () => {
   const [stackTrace, setStackTrace] = useState("");
   const [attachment, setAttachment] = useState<string | undefined>(undefined);
   const [projectId, setProjectId] = useState("");
+  const [contributorId, setContributorId] = useState("");
 
   const loggedUser: User = AuthService.getLoggedUser();
 
@@ -39,8 +41,34 @@ const BugCreateForm = () => {
     setAllProjects(ProjectService.getAllProjects());
   }, []);
 
+  useEffect(() => {
+    if (!projectId) return;
+
+    const selectedProject = allProjects.find((p) => p.id === projectId);
+    if (!selectedProject || !selectedProject.contributors?.length) {
+      setProjectContributors([]);
+      return;
+    }
+
+    const users = UserService.getByListIds(selectedProject.contributors);
+    setProjectContributors(users);
+  }, [projectId, allProjects]);
+
+  const severityToDaysMap: Record<string, number> = {
+    "1": 3,
+    "2": 7,
+    "3": 14,
+    "4": 21,
+    "5": 30,
+  };
+
+  const now = new Date();
+  const expiredDate = new Date(
+    now.getTime() + severityToDaysMap[severity] * 24 * 60 * 60 * 1000
+  );
+
   const handleSubmit = () => {
-    saveBug({
+    BugService.saveBug({
       projectId,
       summary,
       description,
@@ -53,6 +81,10 @@ const BugCreateForm = () => {
       stackTrace,
       attachment,
       createdBy: loggedUser.id,
+      status: "Novo",
+      createdDate: new Date(),
+      expiredDate,
+      contributorId: contributorId,
     });
 
     toast.success("Defeito criado com sucesso!", {
@@ -62,6 +94,10 @@ const BugCreateForm = () => {
         onClick: () => console.log("teste"),
       },
     });
+
+    setTimeout(() => {
+      window.location.href = "/www/bug/list";
+    }, 2000);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,6 +134,26 @@ const BugCreateForm = () => {
                   {allProjects.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex w-full gap-4">
+          <div className="flex flex-col space-y-1.5 w-full">
+            <Label htmlFor="contributorId">Responsável</Label>
+            <Select onValueChange={setContributorId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione o responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Contribuintes</SelectLabel>
+                  {projectContributors.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} {user.lastName}
                     </SelectItem>
                   ))}
                 </SelectGroup>

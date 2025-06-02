@@ -22,7 +22,7 @@ const components: { title: string; href: string; description: string }[] = [
   },
   {
     title: "Meus defeitos",
-    href: "/www/bugs/view",
+    href: "/www/bugs/list",
     description:
       "Visualize todos os defeitos em que você é o principal responsável",
   },

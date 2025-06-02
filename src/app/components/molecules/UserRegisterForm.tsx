@@ -160,7 +160,7 @@ const UserRegisterForm = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Fruits</SelectLabel>
+                    <SelectLabel>Departamentos</SelectLabel>
                     <SelectItem value="marketing">Marketing</SelectItem>
                     <SelectItem value="development">Development</SelectItem>
                   </SelectGroup>
@@ -168,17 +168,17 @@ const UserRegisterForm = () => {
               </Select>
             </div>
             <div className="flex flex-col space-y-1.5 w-full">
-              <Label htmlFor="position">Cargo</Label>
+              <Label htmlFor="position">Função</Label>
               <Select value={position} onValueChange={setPosition} required>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione seu cargo" /> 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Cargos</SelectLabel>
-                    <SelectItem value="developer">Developer</SelectItem>
-                    <SelectItem value="qa">Quality Analyst</SelectItem>
-                    <SelectItem value="qa">Product Owner</SelectItem>
+                    <SelectLabel>Funções</SelectLabel>
+                    <SelectItem value="Developer">Developer</SelectItem>
+                    <SelectItem value="Quality Analyst">Quality Analyst</SelectItem>
+                    <SelectItem value="Product Owner">Product Owner</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

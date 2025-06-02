@@ -9,21 +9,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/app/components/atoms/DropdownMenuComponent";
-import { AuthService } from "@/app/services/authService";
+import { Project, ProjectService } from "@/app/services/projectService";
 import { User, UserService } from "@/app/services/userService";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export type Project = {
+export type Bug = {
   id: string;
-  name: string;
+  projectId: string;
+  summary: string;
   description: string;
-  contributors: string[];
-  adminId: string;
+  environment: string;
+  severity: string;
+  version: string;
+  category: string;
+  currentBehavior: string;
+  expectedBehavior: string;
+  stackTrace: string;
+  attachment?: string; // base64 ou URL
+  createdBy: string; // id do usuário/admin
 };
 
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<Bug>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -47,9 +55,11 @@ export const columns: ColumnDef<Project>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
-    header: "Nome",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+    accessorKey: "summary",
+    header: "Resumo",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("summary")}</div>
+    ),
   },
   {
     accessorKey: "description",
@@ -59,56 +69,45 @@ export const columns: ColumnDef<Project>[] = [
     ),
   },
   {
-    accessorKey: "contributors",
-    header: "Membros",
+    accessorKey: "projectId",
+    header: "Projeto",
     cell: ({ row }) => {
-      const contributorIds = row.getValue("contributors") as string[];
-      const [contributors, setContributors] = useState<User[]>([]);
+      const projectId = row.getValue("projectId") as string;
+      const [project, setProject] = useState<Project>();
 
       useEffect(() => {
-        if (contributorIds && contributorIds.length > 0) {
-          const contributors = UserService.getByListIds(contributorIds);
-          setContributors(contributors);
+        if (projectId) {
+          const project = ProjectService.getById(projectId);
+          setProject(project);
         }
-      }, [contributorIds]);
+      }, []);
 
-      return (
-        <div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-8 h-8 p-0 rounded-full text-xs border-primary"
-                title="Ver Contribuidores"
-              >
-                {contributors.length}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {contributors.map((user) => (
-                <DropdownMenuItem key={user.id}>
-                  {user.firstName} {user.lastName}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
+      return <div className="capitalize">{project?.name}</div>;
     },
   },
   {
-    accessorKey: "adminId",
-    header: "Situação",
+    accessorKey: "status",
+    header: "Status",
     cell: ({ row }) => {
-      const loggedUser = AuthService.getLoggedUser()
-
-
-      return (
-        <div>
-          {row.getValue("adminId") === loggedUser.id ? "Administrador" : "Membro"}
-        </div>
-      );
+      return <div className="capitalize">{row.getValue("status")}</div>;
+    },
+  },
+  {
+    accessorKey: "severity",
+    header: "Prioridade",
+    cell: ({ row }) => {
+      return <div className="capitalize">{row.getValue("severity")}</div>;
+    },
+  },
+  {
+    accessorKey: "expiredDate",
+    header: "Validade",
+    cell: ({ row }) => {
+      const value = row.getValue("expiredDate") as string;
+      const formatted = value
+        ? new Date(value).toLocaleDateString("pt-BR")
+        : "";
+      return <div className="capitalize">{formatted}</div>;
     },
   },
   {
@@ -125,8 +124,8 @@ export const columns: ColumnDef<Project>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuItem>Visualizar projeto</DropdownMenuItem>
-            <DropdownMenuItem>Membros do Projeto</DropdownMenuItem>
+            <DropdownMenuItem>Visualizar defeito</DropdownMenuItem>
+            <DropdownMenuItem>Alterar Status do defeito</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

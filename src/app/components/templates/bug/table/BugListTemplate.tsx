@@ -2,20 +2,17 @@
 
 import { ThemeToggle } from "../../../molecules/ThemeToggle";
 import DashboardHeader from "../../../organism/DashboardHeader";
-import { ProjectDataTable } from "../../../molecules/ProjectDataTable";
 import { columns } from "./columns";
-import { Project, ProjectService } from "@/app/services/projectService";
 import { useEffect, useState } from "react";
 import { Card } from "@/app/components/atoms";
-import { AuthService } from "@/app/services/authService";
+import { BugDataTable } from "@/app/components/molecules/BugDataTable";
+import { Bug, BugService } from "@/app/services/bugService";
 
-const ProjectListTemplate = () => {
-  const [data, setData] = useState<Project[]>([]);
-
-  const loggedUser = AuthService.getLoggedUser();
+const BugListTemplate = () => {
+  const [data, setData] = useState<Bug[]>([]);
 
   useEffect(() => {
-    setData(ProjectService.getAllProjectsByUser(loggedUser.id));
+    setData(BugService.getAllBugs());
   }, []);
 
   return (
@@ -23,7 +20,7 @@ const ProjectListTemplate = () => {
       <DashboardHeader />
       <main className="flex items-center justify-center py-8">
         <Card className="w-full max-w-[1350px] mx-auto p-8 dark:bg-gray-800 rounded-lg shadow-md border border-primary">
-          <ProjectDataTable columns={columns} data={data} />
+          <BugDataTable columns={columns} data={data} />
         </Card>
       </main>
       <ThemeToggle />
@@ -31,4 +28,4 @@ const ProjectListTemplate = () => {
   );
 };
 
-export default ProjectListTemplate;
+export default BugListTemplate;

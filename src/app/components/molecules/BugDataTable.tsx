@@ -31,7 +31,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function ProjectDataTable<TData, TValue>({
+export function BugDataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
@@ -65,10 +65,10 @@ export function ProjectDataTable<TData, TValue>({
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filtrar nomes..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder="Filtrar defeitos..."
+          value={(table.getColumn("summary")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("summary")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -142,7 +142,7 @@ export function ProjectDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Não há projetos
+                  Não há defeitos
                 </TableCell>
               </TableRow>
             )}

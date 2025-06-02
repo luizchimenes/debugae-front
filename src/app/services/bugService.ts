@@ -12,35 +12,49 @@ export interface Bug {
   currentBehavior: string;
   expectedBehavior: string;
   stackTrace: string;
-  attachment?: string; // base64 ou URL
-  createdBy: string; // id do usuário/admin
+  status: string;
+  attachment?: string;
+  createdDate: Date;
+  expiredDate: Date;
+  closedDate?: Date;
+  updatedDate?: Date;
+  createdBy: string; 
+  contributorId: string;
 }
 
 const BUGS_KEY = "bugs";
+export const BugService = {
+    getAllBugs: (): Bug[] => {
+      if (typeof window === "undefined") return [];
+      const bugsJson = localStorage.getItem(BUGS_KEY);
+      return bugsJson ? JSON.parse(bugsJson) : [];
+    },
 
-export const getAllBugs = (): Bug[] => {
-  if (typeof window === "undefined") return [];
-  const bugsJson = localStorage.getItem(BUGS_KEY);
-  return bugsJson ? JSON.parse(bugsJson) : [];
-};
+    getAllBugsByUser: (id: String): Bug[] => {
+      if (typeof window === "undefined") return [];
+      const bugsJson = BugService.getAllBugs().filter((bug) => bug.contributorId === id);
+      return bugsJson ? bugsJson : [];
+    },
 
-export const saveBug = (bug: Omit<Bug, "id">): void => {
-  const newBug: Bug = { ...bug, id: uuidv4() };
-  const bugs = getAllBugs();
-  bugs.push(newBug);
-  localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
-};
+    saveBug: (bug: Omit<Bug, "id">): void => {
+      const newBug: Bug = { ...bug, id: uuidv4() };
+      const bugs = BugService.getAllBugs();
+      bugs.push(newBug);
+      localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
+    },
 
-export const deleteBug = (id: string): void => {
-  const bugs = getAllBugs().filter((bug) => bug.id !== id);
-  localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
-};
+    deleteBug: (id: string): void => {
+      const bugs = BugService.getAllBugs().filter((bug) => bug.id !== id);
+      localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
+    },
 
-export const updateBug = (updatedBug: Bug): void => {
-  const bugs = getAllBugs().map((bug) => (bug.id === updatedBug.id ? updatedBug : bug));
-  localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
-};
+    updateBug: (updatedBug: Bug): void => {
+      const bugs = BugService.getAllBugs().map((bug) => (bug.id === updatedBug.id ? updatedBug : bug));
+      localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
+    },
 
-export const getBugById = (id: string): Bug | undefined => {
-  return getAllBugs().find((bug) => bug.id === id);
-};
+    getBugById:  (id: string): Bug | undefined => {
+      return BugService.getAllBugs().find((bug) => bug.id === id);
+    }
+}
+

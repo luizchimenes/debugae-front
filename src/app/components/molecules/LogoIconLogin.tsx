@@ -3,7 +3,7 @@ import { Poppins } from "next/font/google";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["700"] });
 
-const LogoIcon = () => {
+const LogoIconLogin = () => {
   return (
     <div className="flex items-center justify-center gap-2 mb-6">
       <svg
@@ -21,7 +21,7 @@ const LogoIcon = () => {
         />
       </svg>
       <h1
-        className={`${poppins.className} text-2xl font-bold text-center text-white dark:text-primary`}
+        className={`${poppins.className} text-2xl font-bold text-center text-primary`}
       >
         Debugaê
       </h1>
@@ -29,4 +29,4 @@ const LogoIcon = () => {
   );
 };
 
-export default LogoIcon;
+export default LogoIconLogin;
