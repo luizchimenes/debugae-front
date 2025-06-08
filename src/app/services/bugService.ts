@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { DefeitoHistoricoService } from "./logService";
 import { AuthService } from "./authService";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
+import { StatusDefeito } from "../enums/StatusDefeito";
 
 export interface Bug {
   id: string;
@@ -64,7 +65,7 @@ export const BugService = {
           summary: newBug.summary,
           status: newBug.status,
           severity: newBug.severity,
-        } 
+        }
       );
     }
     return newBug;
@@ -110,12 +111,15 @@ export const BugService = {
       if (currentUser) {
         let action: AcaoRealizada = AcaoRealizada.ATUALIZACAO_STATUS;
 
-        if (updatedBug.status === "resolved" && oldBug.status !== "resolved") {
+        if (
+          updatedBug.status === StatusDefeito.RESOLVIDO &&
+          oldBug.status !== StatusDefeito.RESOLVIDO
+        ) {
           updatedBug.closedDate = new Date();
           action = AcaoRealizada.FECHAMENTO;
         } else if (
-          updatedBug.status !== "resolved" &&
-          oldBug.status === "resolved"
+          updatedBug.status !== StatusDefeito.RESOLVIDO &&
+          oldBug.status === StatusDefeito.RESOLVIDO
         ) {
           updatedBug.closedDate = undefined;
           action = AcaoRealizada.REABERTURA;
