@@ -28,7 +28,7 @@ export const UserService = {
     return newUser;
   },
 
-  getById: (id: string): User | undefined => {
+  getById: (id: string | undefined): User | undefined => {
     return UserService.getAll().find((user) => user.id === id);
   },
 

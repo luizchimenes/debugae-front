@@ -1,7 +1,6 @@
 import LoginForm from "@molecules/LoginForm";
 import { Card } from "../atoms";
 import { ThemeToggle } from "../molecules/ThemeToggle";
-import { Poppins } from "next/font/google";
 import LogoIconLogin from "../molecules/LogoIconLogin";
 
 const LoginTemplate = () => {
@@ -15,7 +14,7 @@ const LoginTemplate = () => {
           <a
             href="/www/user/create"
             className="text-primary hover:text-blue-700"
-          >
+          > 
             Clique aqui para efetuar o cadastro
           </a>
         </span>
