@@ -7,12 +7,15 @@ import { useEffect, useState } from "react";
 import { Card } from "@/app/components/atoms";
 import { BugDataTable } from "@/app/components/molecules/BugDataTable";
 import { Bug, BugService } from "@/app/services/bugService";
+import { AuthService } from "@/app/services/authService";
 
 const BugListTemplate = () => {
   const [data, setData] = useState<Bug[]>([]);
 
+  const loggedUser = AuthService.getLoggedUser()
+
   useEffect(() => {
-    setData(BugService.getAllBugs());
+    setData(BugService.getAllBugsByUser(loggedUser.id));
   }, []);
 
   return (

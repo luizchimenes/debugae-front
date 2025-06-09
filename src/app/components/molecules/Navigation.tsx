@@ -74,9 +74,9 @@ export function Navigation() {
             <NavigationMenuTrigger>Relatórios</NavigationMenuTrigger>
             <NavigationMenuContent>
               <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                <ListItem title="Relatório de Defeitos"></ListItem>
-                <ListItem title="Relatório de Projetos"></ListItem>
-                <ListItem title="Relatório de Usuários"></ListItem>
+                <ListItem  href="/www/reports/bug-report" title="Relatório de Defeitos"></ListItem>
+                {/* <ListItem title="Relatório de Projetos"></ListItem>
+                <ListItem title="Relatório de Usuários"></ListItem> */}
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
