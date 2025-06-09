@@ -12,11 +12,20 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [progress, setProgress] = useState(13);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => setProgress(66), 500);
-    return () => clearTimeout(timer);
+    let interval: NodeJS.Timeout;
+
+    interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev < 90) return prev + 10;
+        clearInterval(interval);
+        return prev;
+      });
+    }, 200);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -25,14 +34,19 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (!user) {
       router.replace("/www/login");
     } else {
-      setIsCheckingAuth(false);
+      setTimeout(() => {
+        setProgress(100);
+        setTimeout(() => {
+          setIsCheckingAuth(false);
+        }, 200); 
+      }, 300);
     }
   }, []);
 
   if (isCheckingAuth) {
     return (
       <div className="w-full flex justify-center items-center h-40">
-        <Progress value={progress} className="w-[60%]" />
+        <Progress value={progress} className="w-[60%] transition-all duration-300" />
       </div>
     );
   }
