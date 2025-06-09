@@ -26,6 +26,8 @@ import { BugService } from "@/app/services/bugService";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { AcaoRealizada } from "@/app/enums/AcaoRealizada";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
+import { findSimilarBugs } from "@/app/services/duplicatedService";
+import DuplicatedBugModal from "../organism/DuplicatedBugModal";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_SUMMARY_LENGTH = 100;
@@ -49,6 +51,10 @@ const BugCreateForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showSimilarBugsModal, setShowSimilarBugsModal] = useState(false);
+  const [similarBugs, setSimilarBugs] = useState<any[]>([]);
+  const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
 
   const loggedUser: User = AuthService.getLoggedUser();
 
@@ -141,6 +147,38 @@ const BugCreateForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const checkForSimilarBugs = async (): Promise<boolean> => {
+    if (!summary.trim() || !description.trim()) {
+      return true;
+    }
+
+    setIsCheckingSimilarity(true);
+
+    try {
+      const allBugs = BugService.getAllBugsByProject(projectId);
+      const similar = findSimilarBugs(
+        summary,
+        description,
+        projectId,
+        allBugs,
+        0.6
+      );
+
+      if (similar.length > 0) {
+        setSimilarBugs(similar);
+        setShowSimilarBugsModal(true);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Erro ao verificar bugs similares:", error);
+      return true;
+    } finally {
+      setIsCheckingSimilarity(false);
+    }
+  };
+
   const handleInputChange = (
     field: string,
     value: string,
@@ -202,8 +240,12 @@ const BugCreateForm = () => {
       }
     } else if (currentStep === 2) {
       if (validateStep2()) {
-        setCurrentStep(3);
-        setErrors({});
+        const canProceed = await checkForSimilarBugs();
+        console.log(canProceed)
+        if (canProceed) {
+          setCurrentStep(3);
+          setErrors({});
+        }
       }
     }
   };
@@ -458,6 +500,33 @@ const BugCreateForm = () => {
             </div>
           </div>
         </Card>
+      )}
+
+      {showSimilarBugsModal && (
+        <DuplicatedBugModal
+          show={showSimilarBugsModal}
+          onClose={() => setShowSimilarBugsModal(false)}
+          onContinue={() => {
+            setShowSimilarBugsModal(false);
+            setCurrentStep(3);
+            setErrors({});
+          }}
+          similarBugs={similarBugs}
+          getStatusColor={(status) => {
+            switch (status) {
+              case "NOVO":
+                return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+              case "EM_ANDAMENTO":
+                return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+              case "RESOLVIDO":
+                return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+              case "FECHADO":
+                return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+              default:
+                return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+            }
+          }}
+        />
       )}
 
       {currentStep === 2 && (

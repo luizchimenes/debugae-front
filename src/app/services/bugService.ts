@@ -48,6 +48,14 @@ export const BugService = {
     return bugsJson || [];
   },
 
+  getAllBugsByProject: (id: string): Bug[] => {
+    if (typeof window === "undefined") return [];
+    const bugsJson = BugService.getAllBugs().filter(
+      (bug) => bug.projectId === id
+    );
+    return bugsJson || [];
+  },
+
   saveBug: (bug: Omit<Bug, "id">): Bug => {
     const newBug: Bug = { ...bug, id: uuidv4() };
     const bugs = BugService.getAllBugs();
