@@ -38,18 +38,22 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         setProgress(100);
         setTimeout(() => {
           setIsCheckingAuth(false);
-        }, 200); 
+        }, 200);
       }, 300);
     }
   }, []);
 
-  if (isCheckingAuth) {
-    return (
-      <div className="w-full flex justify-center items-center h-40">
-        <Progress value={progress} className="w-[60%] transition-all duration-300" />
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  return (
+    <>
+      {isCheckingAuth && (
+        <div className="fixed top-0 left-0 w-full z-50">
+          <Progress
+            value={progress}
+            className="h-1 w-full transition-all duration-300"
+          />
+        </div>
+      )}
+      {children}
+    </>
+  );
 }
