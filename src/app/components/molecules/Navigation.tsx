@@ -214,17 +214,20 @@ export function Navigation() {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
-              <Link
-                href="/www/about"
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  isLoading && "pointer-events-none opacity-50"
-                )}
-                prefetch
+              <button
+                onClick={() =>
+                  handleRedirect(
+                    "/www/about",
+                    "Quer descobrir mais sobre o sistema",
+                    "Carregando nossos dados..."
+                  )
+                }
+                className={cn(navigationMenuTriggerStyle(), "cursor-pointer")}
+                disabled={isLoading}
               >
                 <Info className="h-4 w-4 mr-3" />
                 Sobre
-              </Link>
+              </button>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function Home() {
-  redirect("www/login");
+export default async function Home() {
+  redirect("/www/login"); 
 }

@@ -24,6 +24,17 @@ const DashboardBugView = () => {
 
   const loggedUser = AuthService.getLoggedUser();
 
+  const EmptyRow = ({ colSpan }: { colSpan: number }) => (
+    <TableRow>
+      <TableCell
+        colSpan={colSpan}
+        className="text-center py-4 text-muted-foreground"
+      >
+        Nenhum item encontrado.
+      </TableCell>
+    </TableRow>
+  );
+
   useEffect(() => {
     const data = BugService.getAllBugsByUser(loggedUser.id);
     console.log(data);
@@ -58,18 +69,13 @@ const DashboardBugView = () => {
               <TableRow key={bug.id}>
                 <TableCell className="font-medium">{bug.summary}</TableCell>
                 <TableCell className="font-small">{bug.status}</TableCell>
-                <TableCell className="font-small">{new Date(bug.expiredDate).toLocaleDateString("pt-BR")}</TableCell>
+                <TableCell className="font-small">
+                  {new Date(bug.expiredDate).toLocaleDateString("pt-BR")}
+                </TableCell>
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell
-                colSpan={3}
-                className="text-center py-4 text-muted-foreground"
-              >
-                Nenhum defeito encontrado.
-              </TableCell>
-            </TableRow>
+            <EmptyRow colSpan={3} />
           )}
         </TableBody>
       </Table>

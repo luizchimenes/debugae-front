@@ -24,6 +24,17 @@ const DashboardProjectView = () => {
 
   const loggedUser = AuthService.getLoggedUser();
 
+  const EmptyRow = ({ colSpan }: { colSpan: number }) => (
+    <TableRow>
+      <TableCell
+        colSpan={colSpan}
+        className="text-center py-4 text-muted-foreground"
+      >
+        Nenhum item encontrado.
+      </TableCell>
+    </TableRow>
+  );
+
   useEffect(() => {
     const data = ProjectService.getAllProjectsByUser(loggedUser.id);
     if (data.length > 0) {
@@ -66,14 +77,7 @@ const DashboardProjectView = () => {
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell
-                colSpan={3}
-                className="text-center py-4 text-muted-foreground"
-              >
-                Nenhum projeto encontrado.
-              </TableCell>
-            </TableRow>
+            <EmptyRow colSpan={3} />
           )}
         </TableBody>
       </Table>
