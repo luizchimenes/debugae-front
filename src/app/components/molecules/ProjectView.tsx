@@ -30,6 +30,9 @@ import {
 import { Bug as Bugs, BugService } from "@/app/services/bugService";
 import ProjectEditModal from "../organism/ProjectChangeModal";
 import { useRouter } from "next/navigation";
+import { AuthService } from "@/app/services/authService";
+import { LoadingOverlay } from "../atoms/LoadingPage";
+import { toast } from "sonner";
 
 interface ProjectViewProps {
   projectId: string;
@@ -44,6 +47,8 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [showChangeModal, setShowChangeModal] = useState(false);
+
+  const loggedUser = AuthService.getLoggedUser();
 
   const router = useRouter();
 
@@ -114,12 +119,22 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   };
 
   const handleProjectUpdated = (updatedProject: Project) => {
-    setProject(updatedProject); 
+    setProject(updatedProject);
   };
 
-    const handleViewDefect = (defectId: string) => {
-    router.push(`/www/bugs/view/${defectId}`);
-  }
+  const handleViewDefect = async (defectId: string) => {
+    try {
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      router.push(`/www/bugs/view/${defectId}`);
+    } catch (err) {
+      console.error("Erro ao redirecionar:", err);
+      toast.error("Erro ao redirecionar", {
+        description: "Ocorreu um problema ao navegar. Tente novamente.",
+      });
+      setIsLoading(false);
+    }
+  };
 
   const filteredDefects = bugs.filter((bug) => {
     const matchesSearch =
@@ -142,16 +157,6 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     return { total, open, inProgress, resolved };
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Carregando projeto...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!project) {
     return (
@@ -177,6 +182,10 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
 
   const stats = getDefectStats();
 
+  if (isLoading) {
+    return <LoadingOverlay />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -193,10 +202,13 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button> */}
-          <Button variant="outline" size="sm" onClick={handleOpenEditModal}>
-            <Settings className="w-4 h-4 mr-2" />
-            Configurações
-          </Button>
+          {loggedUser.id == project.adminId && (
+            <Button variant="outline" size="sm" onClick={handleOpenEditModal}>
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </Button>
+          )}
+
           <Button
             variant="outline"
             onClick={() => (window.location.href = "/www/project/list")}
@@ -308,8 +320,8 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
       <ProjectEditModal
         show={showChangeModal}
         onClose={handleCloseEditModal}
-        project={project} 
-        onProjectUpdated={handleProjectUpdated} 
+        project={project}
+        onProjectUpdated={handleProjectUpdated}
       />
 
       <Card>
@@ -348,7 +360,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 {filteredDefects.length} de {bugs.length} defeitos encontrados
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => (window.location.href = "/www/bugs/create")}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Defeito
             </Button>
@@ -455,8 +467,13 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2 ml-4"> 
-                        <Button className="cursor-pointer hover:bg-muted transition" variant="ghost" size="sm" onClick={() => handleViewDefect(bug.id)}>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          className="cursor-pointer hover:bg-muted transition"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewDefect(bug.id)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
                       </div>

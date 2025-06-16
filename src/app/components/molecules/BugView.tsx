@@ -27,6 +27,9 @@ import {
   Edit3,
   File,
   Clock1,
+  Plus,
+  Eye,
+  Download,
 } from "lucide-react";
 import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
@@ -255,10 +258,10 @@ const BugView = ({ bugId }: BugViewProps) => {
             <Edit3 className="w-4 h-4 mr-2" />
             Alterar Status
           </Button>
-          <Button variant="outline" size="sm">
+          {/* <Button variant="outline" size="sm">
             <Settings className="w-4 h-4 mr-2" />
             Configurações
-          </Button>
+          </Button> */}
           <Button variant="outline" onClick={() => window.history.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
@@ -571,6 +574,110 @@ const BugView = ({ bugId }: BugViewProps) => {
 
             {activeTab === "history" && (
               <BugHistoryTab history={logs} getStatusColor={getStatusColor} />
+            )}
+
+            {activeTab === "attachments" && (
+              <div className="space-y-6">
+                {bug.attachment ? (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                      <File className="w-4 h-4 mr-2" />
+                      Anexos do Defeito
+                    </h3>
+
+                    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                            <File className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {UtilService.getFileName(bug.attachment)}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {UtilService.getFileType(bug.attachment)} •{" "}
+                              {UtilService.getFileSize(bug.attachment)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => UtilService.downloadAttachment(bug.attachment!)}
+                            className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Baixar
+                          </Button>
+                          {UtilService.isImageFile(bug.attachment) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => UtilService.previewAttachment(bug.attachment!)}
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900"
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Visualizar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {UtilService.isImageFile(bug.attachment) && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <img
+                            src={bug.attachment}
+                            alt="Anexo do defeito"
+                            className="max-w-full h-auto max-h-64 rounded-lg border border-gray-200 dark:border-gray-700"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+                      <div className="flex items-center">
+                        <AlertTriangle className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                        <span>
+                          Este anexo foi enviado em{" "}
+                          {UtilService.formatDate(bug.createdDate)} por{" "}
+                          {creator?.firstName + " " + creator?.lastName}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="flex flex-col items-center">
+                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                        <File className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        Nenhum anexo encontrado
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-4">
+                        Este defeito não possui anexos associados.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900"
+                        onClick={() => {
+                          console.log("Adicionar anexo não implementado");
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Anexo
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </ScrollArea>

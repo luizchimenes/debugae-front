@@ -11,9 +11,11 @@ import {
 } from "../atoms/DropdownMenuComponent";
 import { AuthService } from "@/app/services/authService";
 import { AcaoRealizada } from "@/app/enums/AcaoRealizada";
-import { DefeitoHistorico, DefeitoHistoricoService } from "@/app/services/logService";
+import {
+  DefeitoHistorico,
+  DefeitoHistoricoService,
+} from "@/app/services/logService";
 import { BugService } from "@/app/services/bugService";
-
 
 const NotificationCard = () => {
   const [notifications, setNotifications] = useState<
@@ -123,10 +125,10 @@ const NotificationCard = () => {
   return (
     <DropdownMenu onOpenChange={(open) => open && handleDropdownOpen()}>
       <DropdownMenuTrigger asChild>
-        <div className="relative flex items-center justify-center w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-          <Mail className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        <div className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+          <Mail className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-300" />
           {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-medium rounded-full px-1">
+            <div className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] md:min-w-[18px] h-[16px] md:h-[18px] bg-red-500 text-white text-xs font-medium rounded-full px-1">
               {unreadCount > 99 ? "99+" : unreadCount}
             </div>
           )}
@@ -134,10 +136,10 @@ const NotificationCard = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-80 max-h-96 overflow-y-auto z-[9999]"
+        className="w-72 md:w-80 max-h-80 md:max-h-96 overflow-y-auto z-[9999]"
       >
         <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="font-medium text-gray-900 dark:text-white">
+          <h3 className="font-medium text-gray-900 dark:text-white text-sm md:text-base">
             Notificações
           </h3>
         </div>
@@ -160,11 +162,11 @@ const NotificationCard = () => {
                     {formatDate(notification.criadoEm)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
+                <p className="text-xs text-gray-600 dark:text-gray-300 break-words">
                   {notification.bugSummary}
                 </p>
                 {notification.comentario && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 italic break-words">
                     "{notification.comentario}"
                   </p>
                 )}

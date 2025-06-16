@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -22,7 +21,7 @@ import {
   Info,
 } from "lucide-react";
 import { LoadingOverlay } from "../atoms/LoadingPage";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 const defects = [
@@ -61,6 +60,7 @@ export function Navigation() {
   const [loadingTitle, setLoadingTitle] = React.useState("");
   const [loadingSubtitle, setLoadingSubtitle] = React.useState("");
   const router = useRouter();
+  const currentPath = usePathname();
 
   const handleRedirect = async (
     path: string,
@@ -68,6 +68,10 @@ export function Navigation() {
     subtitle?: string
   ) => {
     try {
+      if (currentPath === path) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       setLoadingTitle(title || "Navegando");
       setLoadingSubtitle(
@@ -96,10 +100,10 @@ export function Navigation() {
         />
       )}
 
-      <div className="flex items-center justify-between">
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
+      <div className="flex items-center justify-between w-full lg:w-auto">
+        <NavigationMenu className="w-full lg:w-auto">
+          <NavigationMenuList className="flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-1 w-full lg:w-auto">
+            <NavigationMenuItem className="w-full lg:w-auto">
               <button
                 onClick={() =>
                   handleRedirect(
@@ -108,23 +112,29 @@ export function Navigation() {
                     "Carregando painel principal..."
                   )
                 }
-                className={cn(navigationMenuTriggerStyle(), "cursor-pointer")}
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "cursor-pointer w-full lg:w-auto justify-start lg:justify-center text-sm lg:text-base px-3 lg:px-4"
+                )}
                 disabled={isLoading}
               >
-                <Home className="h-4 w-4 mr-3" />
-                Menu Inicial
+                <Home className="h-4 w-4 mr-2 lg:mr-3" />
+                <span className="lg:inline">Menu Inicial</span>
               </button>
             </NavigationMenuItem>
 
-            <NavigationMenuItem>
-              <NavigationMenuTrigger disabled={isLoading}>
+            <NavigationMenuItem className="w-full lg:w-auto">
+              <NavigationMenuTrigger
+                disabled={isLoading}
+                className="w-full lg:w-auto justify-start lg:justify-center text-sm lg:text-base px-3 lg:px-4"
+              >
                 <span className="flex items-center gap-2">
                   <FolderKanban className="w-4 h-4" />
                   Projetos
                 </span>
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                <ul className="grid gap-3 p-4 lg:p-6 w-full md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                   {projects.map(({ title, href, description, icon: Icon }) => (
                     <ListItem
                       key={title}
@@ -150,15 +160,18 @@ export function Navigation() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            <NavigationMenuItem>
-              <NavigationMenuTrigger disabled={isLoading}>
+            <NavigationMenuItem className="w-full lg:w-auto">
+              <NavigationMenuTrigger
+                disabled={isLoading}
+                className="w-full lg:w-auto justify-start lg:justify-center text-sm lg:text-base px-3 lg:px-4"
+              >
                 <span className="flex items-center gap-2">
                   <Bug className="w-4 h-4" />
                   Defeitos
                 </span>
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                <ul className="grid w-full gap-3 p-4 md:w-[400px] md:grid-cols-1 lg:w-[600px] lg:grid-cols-2">
                   {defects.map(({ title, href, description, icon: Icon }) => (
                     <ListItem
                       key={title}
@@ -184,15 +197,18 @@ export function Navigation() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            <NavigationMenuItem>
-              <NavigationMenuTrigger disabled={isLoading}>
+            <NavigationMenuItem className="w-full lg:w-auto">
+              <NavigationMenuTrigger
+                disabled={isLoading}
+                className="w-full lg:w-auto justify-start lg:justify-center text-sm lg:text-base px-3 lg:px-4"
+              >
                 <span className="flex items-center gap-2">
                   <FileText className="w-4 h-4" />
                   Relatórios
                 </span>
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                <ul className="grid gap-3 p-4 lg:p-6 w-full md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                   <ListItem
                     onClick={() =>
                       handleRedirect(
@@ -213,7 +229,7 @@ export function Navigation() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            <NavigationMenuItem>
+            <NavigationMenuItem className="w-full lg:w-auto">
               <button
                 onClick={() =>
                   handleRedirect(
@@ -222,10 +238,13 @@ export function Navigation() {
                     "Carregando nossos dados..."
                   )
                 }
-                className={cn(navigationMenuTriggerStyle(), "cursor-pointer")}
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "cursor-pointer w-full lg:w-auto justify-start lg:justify-center text-sm lg:text-base px-3 lg:px-4"
+                )}
                 disabled={isLoading}
               >
-                <Info className="h-4 w-4 mr-3" />
+                <Info className="h-4 w-4 mr-2 lg:mr-3" />
                 Sobre
               </button>
             </NavigationMenuItem>

@@ -8,11 +8,20 @@ const DashboardView = () => {
     <main className="flex items-center justify-center py-12">
       <Card className="w-full max-w-[1350px] mx-auto p-5 dark:bg-gray-800 rounded-lg shadow-md border border-primary">
         <CardHeader>
-          <CardTitle>Dashboard Inicial</CardTitle>
+          <div>
+            <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Menu Inicial
+            </h4>
+            <p className="text-gray-600 mt-1 dark:text-white">
+              Dashboard inicial do sistema
+            </p>
+          </div>
           <hr />
-          <CardDescription>Visualize as informações e atividades mais recentes do seu usuário</CardDescription>
+          <CardDescription>
+            Visualize as informações e atividades mais recentes do seu usuário
+          </CardDescription>
         </CardHeader>
-        <div className="flex flex-row space-x-6 w-full">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <DashboardProjectView />
           <DashboardBugView />
         </div>

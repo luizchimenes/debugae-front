@@ -5,14 +5,14 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["700"] });
 
 const LogoIcon = () => {
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
+    <div className="flex items-center justify-center gap-1 md:gap-2 mb-3 md:mb-6">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth="1.5"
         stroke="currentColor"
-        className="size-8 mr-2 w-8 h-8"
+        className="w-6 h-6 md:w-8 md:h-8 mr-1 md:mr-2"
       >
         <path
           strokeLinecap="round"
@@ -21,9 +21,10 @@ const LogoIcon = () => {
         />
       </svg>
       <h1
-        className={`${poppins.className} text-2xl font-bold text-center text-white dark:text-primary`}
+        className={`${poppins.className} text-lg md:text-xl lg:text-2xl font-bold text-center text-white dark:text-primary`}
       >
-        Debugaê
+        <span className="hidden sm:inline">Debugaê</span>
+        <span className="sm:hidden">Debugaê</span>
       </h1>
     </div>
   );
