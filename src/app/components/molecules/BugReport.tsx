@@ -114,20 +114,20 @@ const BugReport = () => {
       name: "Inválido",
       value: bugs?.filter((bug) => bug.status === StatusDefeito.INVALIDO)
         .length,
-      color: "#10B981",
+      color: "#EF4444",
     },
     {
       name: "Reaberto",
       value: bugs?.filter((bug) => bug.status === StatusDefeito.REABERTO)
         .length,
-      color: "#10B981",
+      color: "#F59E0B",
     },
     {
       name: "Aguardando",
       value: bugs?.filter(
         (bug) => bug.status === StatusDefeito.AGUARDANDO_USUARIO
       ).length,
-      color: "#10B981",
+      color: "#6366F1",
     },
   ];
 
@@ -161,16 +161,20 @@ const BugReport = () => {
 
   const categoryData = [
     {
-      category: "Funcional",
-      count: bugs?.filter((bug) => bug.category == "Funcional").length,
+      name: "Funcional",
+      value: bugs?.filter((bug) => bug.category == "Funcional").length || 0,
     },
     {
-      category: "Interface",
-      count: bugs?.filter((bug) => bug.category == "Interface").length,
+      name: "Interface",
+      value: bugs?.filter((bug) => bug.category == "Interface").length || 0,
     },
     {
-      category: "Performance",
-      count: bugs?.filter((bug) => bug.category == "Performance").length,
+      name: "Performance",
+      value: bugs?.filter((bug) => bug.category == "Performance").length || 0,
+    },
+    {
+      name: "Melhoria",
+      value: bugs?.filter((bug) => bug.category == "Melhoria").length || 0,
     },
   ];
 
@@ -422,19 +426,18 @@ const BugReport = () => {
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} layout="horizontal">
+                <BarChart data={categoryData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="category" type="category" width={80} />
+                  <XAxis dataKey="name" />
+                  <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 };
