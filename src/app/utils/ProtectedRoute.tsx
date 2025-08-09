@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/app/services/authService";
 import { Progress } from "../components/atoms/ProgressComponent";
+import { useAtomValue } from "jotai";
+import { userAtom } from "../stores/atoms/userAtom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [progress, setProgress] = useState(0);
+  const currentLoggedUser = useAtomValue(userAtom)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -27,7 +29,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }, []);
 
   useEffect(() => {
-    const user = AuthService.getLoggedUser();
+    const user = currentLoggedUser;
 
     if (!user) {
       router.replace("/www/login");
