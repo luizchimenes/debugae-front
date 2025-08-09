@@ -29,7 +29,6 @@ import { toast } from "sonner";
 const UserRegisterForm = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -115,16 +114,6 @@ const UserRegisterForm = () => {
             <hr className="my-4" />
             <div className="flex w-full gap-4">
               <div className="flex flex-col space-y-1.5 w-full">
-                <Label htmlFor="userName">Nome de Usuário</Label>
-                <Input
-                  id="userName"
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5 w-full">
                 <Label htmlFor="firstName">E-mail</Label>
                 <Input
                   id="email"
@@ -196,8 +185,15 @@ const UserRegisterForm = () => {
                   <SelectGroup>
                     <SelectLabel>Funções</SelectLabel>
                     <SelectItem value="Developer">Developer</SelectItem>
-                    <SelectItem value="Quality Analyst">Quality Analyst</SelectItem>
-                    <SelectItem value="Product Owner">Product Owner</SelectItem>
+                    <SelectItem value="Tester">Tester</SelectItem>
+                    <SelectItem value="ProductOwner">Product Owner</SelectItem>
+                    <SelectItem value="ScrumMaster">Scrum Master</SelectItem>
+                    <SelectItem value="BusinessAnalyst">Business Analyst</SelectItem>
+                    <SelectItem value="Architect">Architect</SelectItem>
+                    <SelectItem value="DevOps">DevOps</SelectItem>
+                    <SelectItem value="Designer">Designer</SelectItem>
+                    <SelectItem value="ProjectManager">Project Manager</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

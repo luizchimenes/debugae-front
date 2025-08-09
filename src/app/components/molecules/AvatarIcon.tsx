@@ -10,9 +10,12 @@ import {
 } from "../atoms/DropdownMenuComponent";
 import { useAtom } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import React from "react";
+import { LoadingOverlay } from "../atoms/LoadingPage";
 
 const AvatarIcon = () => {
-  const [user, ] = useAtom(userAtom);
+  const [user, setUser] = useAtom(userAtom);
+  const [loading, setLoading] = React.useState(false);
 
   const getInitials = () => {
     if (!user) return "??";
@@ -21,10 +24,17 @@ const AvatarIcon = () => {
     ).toUpperCase();
   };
 
-  const handleLogout = () => {
-    AuthService.logout();
+  const handleLogout = async () => {
+    setLoading(true);
+    await AuthService.logout();
+    setUser(null);
+    setLoading(false);
     window.location.href = "/www/login";
   };
+
+  if (loading) {
+    return <LoadingOverlay />;
+  }
 
   return (
     <DropdownMenu>

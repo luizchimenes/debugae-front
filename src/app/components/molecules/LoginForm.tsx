@@ -43,6 +43,7 @@ const LoginForm = () => {
           description:
             "Verifique suas credenciais e tente novamente!",
         });
+    } finally {
       setIsLoading(false);
     }
   };

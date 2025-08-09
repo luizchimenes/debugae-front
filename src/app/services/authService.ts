@@ -13,10 +13,11 @@ export const AuthService = {
     }
   },
 
-  logout() {
+  async logout() {
     if (typeof window !== "undefined") {
       Cookies.remove("auth_cookie", { path: "/" });
     }
+    await api.get("/contributors/logout");
   },
 
   async getLoggedUser(): Promise<User | null> {    
@@ -37,17 +38,17 @@ export const AuthService = {
   },
 
   registerAsync: async (userData: User): Promise<CreateUserResponse> => {
-      const payload: CreateUserRequest = {
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        password: userData.password ?? "",
-        department: userData.department,
-        contributorProfession: ContributorProfession[userData.position as keyof typeof ContributorProfession]
-      };
-  
-      const response = await api.post("/contributors/register", payload);
-  
-      return response.data;
-    },
+    const payload: CreateUserRequest = {
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      password: userData.password ?? "",
+      department: userData.department,
+      contributorProfession: ContributorProfession[userData.position as keyof typeof ContributorProfession]
+    };
+
+    const response = await api.post("/contributors/register", payload);
+
+    return response.data;
+  },
 };
