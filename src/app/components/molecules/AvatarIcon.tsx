@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../atoms/AvatarComponent";
 import { AuthService } from "@/app/services/authService";
 import {
@@ -9,18 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../atoms/DropdownMenuComponent";
+import { useAtom } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const AvatarIcon = () => {
-  const [user, setUser] = useState<{
-    firstName: string;
-    lastName: string;
-    position?: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const loggedUser = AuthService.getLoggedUser();
-    setUser(loggedUser);
-  }, []);
+  const [user, ] = useAtom(userAtom);
 
   const getInitials = () => {
     if (!user) return "??";

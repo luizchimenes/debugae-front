@@ -16,7 +16,7 @@ export const CommentService = {
     return commentsJson ? JSON.parse(commentsJson) : [];
   },
 
-  getAllCommentsByUser: (id: String): Comment[] => {
+  getAllCommentsByUser: (id: string): Comment[] => {
     if (typeof window === "undefined") return [];
     const commentsJson = CommentService.getAllComments().filter(
       (comment) => comment.authorId === id
@@ -24,7 +24,7 @@ export const CommentService = {
     return commentsJson ? commentsJson : [];
   },
 
-  getAllCommentsByBug: (bugId: String | undefined): Comment[] | undefined => {
+  getAllCommentsByBug: (bugId: string | undefined): Comment[] | undefined => {
     if (typeof window === "undefined") return [];
     const commentsJson = CommentService.getAllComments().filter(
       (comment) => comment.bugId === bugId

@@ -5,9 +5,8 @@ import { Input } from "@/app/components/atoms/InputComponent";
 import { Label } from "@/app/components/atoms/LabelComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
-import { User, UserService } from "@/app/services/userService";
+import { UserService } from "@/app/services/userService";
 import { Button } from "../atoms";
-import { AuthService } from "@/app/services/authService";
 import { ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -19,6 +18,9 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import User from "@/app/models/User";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -27,7 +29,7 @@ const ProjectCreateForm = () => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [selectedContributor, setSelectedContributor] = useState<
+  const [, setSelectedContributor] = useState<
     string | undefined
   >(undefined);
   const [contributors, setContributors] = useState<string[]>([]);
@@ -36,14 +38,14 @@ const ProjectCreateForm = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const loggedUser: User = AuthService.getLoggedUser();
+  const loggedUser = useAtomValue(userAtom);
 
   useEffect(() => {
     setAllUsers(UserService.getAll());
   }, []);
 
   const validateStep1 = () => {
-    let newErrors: { [key: string]: string } = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!projectName.trim()) {
       newErrors.projectName = "Nome do projeto é obrigatório.";
@@ -97,6 +99,12 @@ const ProjectCreateForm = () => {
         toast.error(
           "Por favor, preencha as informações do projeto corretamente."
         );
+        return;
+      }
+
+      if (!loggedUser || !loggedUser.id) {
+        toast.error("Usuário não está autenticado. Faça login novamente.");
+        setIsLoading(false);
         return;
       }
 

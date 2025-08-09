@@ -55,7 +55,7 @@ export const ProjectService = {
   ): Promise<void> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        let projects: Project[] = ProjectService.getAllProjects();
+        const projects: Project[] = ProjectService.getAllProjects();
         const projectIndex = projects.findIndex(
           (p: Project) => p.id === projectId
         );
@@ -79,7 +79,7 @@ export const ProjectService = {
   updateProject: async (updatedProjectData: Project): Promise<void> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        let projects: Project[] = ProjectService.getAllProjects();
+        const projects: Project[] = ProjectService.getAllProjects();
         const projectIndex = projects.findIndex(
           (p: Project) => p.id === updatedProjectData.id
         );

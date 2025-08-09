@@ -7,7 +7,6 @@ import {
   CardDescription,
 } from "@/app/components/atoms/CardComponent";
 import { Button } from "../atoms";
-import { AuthService } from "@/app/services/authService";
 import { Project, ProjectService } from "@/app/services/projectService";
 import { useEffect, useState } from "react";
 import {
@@ -24,17 +23,23 @@ import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LoadingOverlay } from "../atoms/LoadingPage";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const DashboardProjectView = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const loggedUser = useAtomValue(userAtom);
   const router = useRouter();
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        if (!loggedUser || !loggedUser.id) {
+          setProjects([]);
+          return;
+        }
         const data = ProjectService.getAllProjectsByUser(loggedUser.id);
         setProjects(data || []);
       } catch (error) {
@@ -119,7 +124,7 @@ const DashboardProjectView = () => {
                           {project.name}
                         </h3>
                         <div className="flex items-center space-x-1">
-                          {project.adminId === loggedUser.id ? (
+                          {project.adminId === loggedUser?.id ? (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                               <Crown className="w-3 h-3 mr-1" />
                               Admin

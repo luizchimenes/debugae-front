@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
 import { Comment, CommentService } from "@/app/services/commentService";
-import { User, UserService } from "@/app/services/userService";
+import { UserService } from "@/app/services/userService";
 import { UtilService } from "@/app/services/utilService";
 import { Button } from "../atoms";
+import User from "@/app/models/User";
 
 type CommentWithAuthor = Comment & {
   author?: User;

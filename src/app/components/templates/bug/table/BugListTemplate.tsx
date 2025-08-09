@@ -6,17 +6,21 @@ import { columns } from "./columns";
 import { useEffect, useState } from "react";
 import { Card } from "@/app/components/atoms";
 import { BugDataTable } from "@/app/components/molecules/BugDataTable";
-import { Bug, BugService } from "@/app/services/bugService";
-import { AuthService } from "@/app/services/authService";
+import { BugService } from "@/app/services/bugService";
+import { Bug } from "@/app/models/Bug";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const BugListTemplate = () => {
   const [data, setData] = useState<Bug[]>([]);
 
-  const loggedUser = AuthService.getLoggedUser()
+  const loggedUser = useAtomValue(userAtom);
 
   useEffect(() => {
-    setData(BugService.getAllBugsByUser(loggedUser.id));
-  }, []);
+    if (loggedUser && loggedUser.id) {
+      setData(BugService.getAllBugsByUser(loggedUser.id));
+    }
+  }, [loggedUser]);
 
   return (
     <div className="bg-gradient-main dark:bg-gradient-main min-h-screen flex flex-col">

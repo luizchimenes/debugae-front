@@ -1,7 +1,7 @@
 // app/services/defeitoHistoricoService.ts
 
 import { v4 as uuidv4 } from "uuid";
-import { Bug } from "./bugService"; 
+import { Bug } from "../models/Bug";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
 
 export interface DefeitoHistorico {

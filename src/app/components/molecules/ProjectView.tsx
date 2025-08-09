@@ -9,7 +9,7 @@ import {
 } from "@/app/components/atoms/CardComponent";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
-import { User, UserService } from "@/app/services/userService";
+import { UserService } from "@/app/services/userService";
 import { ProjectService, Project } from "@/app/services/projectService";
 import {
   Bug,
@@ -21,18 +21,18 @@ import {
   Search,
   Plus,
   Eye,
-  Edit,
   Tag,
   Settings,
-  Download,
   ArrowLeft,
 } from "lucide-react";
-import { Bug as Bugs, BugService } from "@/app/services/bugService";
+import { BugService } from "@/app/services/bugService";
+import { Bug as Bugs } from "@/app/models/Bug";
 import ProjectEditModal from "../organism/ProjectChangeModal";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/app/services/authService";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { toast } from "sonner";
+import User from "@/app/models/User";
 
 interface ProjectViewProps {
   projectId: string;
@@ -48,7 +48,15 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showChangeModal, setShowChangeModal] = useState(false);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchLoggedUser = async () => {
+      const user = await AuthService.getLoggedUser();
+      setLoggedUser(user);
+    };
+    fetchLoggedUser();
+  }, []);
 
   const router = useRouter();
 
@@ -194,15 +202,9 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
             {project.name}
           </h1>
           <p className="text-gray-600 mt-1 dark:text-white">
-            Gerenciamento de defeitos do projeto
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          {/* <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
             Exportar
-          </Button> */}
-          {loggedUser.id == project.adminId && (
+          </p>
+          {loggedUser && loggedUser.id === project.adminId && (
             <Button variant="outline" size="sm" onClick={handleOpenEditModal}>
               <Settings className="w-4 h-4 mr-2" />
               Configurações

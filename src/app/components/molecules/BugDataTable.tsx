@@ -32,7 +32,6 @@ import {
   Search,
   Filter,
   Bug,
-  Settings2,
   Eye,
   X,
 } from "lucide-react";
@@ -60,14 +59,6 @@ const severityOptions = [
   { value: "media", label: "Média" },
   { value: "alta", label: "Alta" },
   { value: "critica", label: "Crítica" },
-];
-
-const categoryOptions = [
-  { value: "funcional", label: "Funcional" },
-  { value: "interface", label: "Interface" },
-  { value: "performance", label: "Performance" },
-  { value: "seguranca", label: "Segurança" },
-  { value: "usabilidade", label: "Usabilidade" },
 ];
 
 export function BugDataTable<TData, TValue>({

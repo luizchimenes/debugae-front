@@ -15,9 +15,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    interval = setInterval(() => {
+    const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev < 90) return prev + 10;
         clearInterval(interval);

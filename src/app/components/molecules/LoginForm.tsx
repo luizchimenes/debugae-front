@@ -13,12 +13,16 @@ import { useRouter } from "next/navigation";
 import { AuthService } from "@/app/services/authService";
 import { toast } from "sonner";
 import { LoadingOverlay } from "../atoms/LoadingPage";
+import { useAtom } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, ] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [, setUser] = useAtom(userAtom);
 
   const router = useRouter();
 
@@ -27,25 +31,18 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await AuthService.loginAsync(email, password);
 
-      const user = AuthService.login(email, password);
+      const userData = await AuthService.getLoggedUser();
 
-      if (user) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        router.push("/www/dashboard");
-      } else {
-        toast.error("Credenciais inválidas", {
+      setUser(userData);
+
+      router.push("/www/dashboard");
+    } catch {
+      toast.error("Erro de login", {
           description:
-            "Credenciais inseridas estão incorretas! Verifique e tente novamente",
+            "Verifique suas credenciais e tente novamente!",
         });
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Erro no login:", error);
-      toast.error("Erro interno", {
-        description: "Ocorreu um erro inesperado. Tente novamente.",
-      });
       setIsLoading(false);
     }
   };

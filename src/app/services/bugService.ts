@@ -3,28 +3,7 @@ import { DefeitoHistoricoService } from "./logService";
 import { AuthService } from "./authService";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
 import { StatusDefeito } from "../enums/StatusDefeito";
-
-export interface Bug {
-  id: string;
-  projectId: string;
-  summary: string;
-  description: string;
-  environment: string;
-  severity: string;
-  version: string;
-  category: string;
-  currentBehavior: string;
-  expectedBehavior: string;
-  stackTrace: string;
-  status: string;
-  attachment?: string;
-  createdDate: Date;
-  expiredDate: Date;
-  closedDate?: Date;
-  updatedDate?: Date;
-  createdBy: string;
-  contributorId: string;
-}
+import { Bug } from "../models/Bug";
 
 const BUGS_KEY = "bugs";
 
@@ -56,13 +35,13 @@ export const BugService = {
     return bugsJson || [];
   },
 
-  saveBug: (bug: Omit<Bug, "id">): Bug => {
+  saveBug: async (bug: Omit<Bug, "id">): Promise<Bug> => {
     const newBug: Bug = { ...bug, id: uuidv4() };
     const bugs = BugService.getAllBugs();
     bugs.push(newBug);
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
 
-    const currentUser = AuthService.getLoggedUser();
+    const currentUser = await AuthService.getLoggedUser();
     if (currentUser) {
       DefeitoHistoricoService.salvarHistorico(
         newBug.id,
@@ -79,13 +58,13 @@ export const BugService = {
     return newBug;
   },
 
-  deleteBug: (id: string): void => {
+  deleteBug: async (id: string): Promise<void> => {
     const bugToDelete = BugService.getBugById(id);
     const bugs = BugService.getAllBugs().filter((bug) => bug.id !== id);
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
 
     if (bugToDelete) {
-      const currentUser = AuthService.getLoggedUser();
+      const currentUser = await AuthService.getLoggedUser();
       if (currentUser) {
         DefeitoHistoricoService.salvarHistorico(
           bugToDelete.id,
@@ -98,7 +77,7 @@ export const BugService = {
     }
   },
 
-  updateBug: (updatedBug: Bug): void => {
+  updateBug: async (updatedBug: Bug): Promise<void> => {
     const oldBug = BugService.getBugById(updatedBug.id);
     if (!oldBug) {
       console.warn(
@@ -108,7 +87,7 @@ export const BugService = {
     }
     updatedBug.updatedDate = new Date();
 
-    const currentUser = AuthService.getLoggedUser();
+    const currentUser = await AuthService.getLoggedUser();
     if (!currentUser) {
       console.warn(
         "Nenhum usuário logado. Não é possível registrar histórico."

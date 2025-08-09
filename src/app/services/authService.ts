@@ -1,37 +1,53 @@
 import Cookies from "js-cookie";
-import { UserService } from "./userService";
+import api from "../config/axiosConfig";
+import User from "../models/User";
+import CreateUserResponse from "../models/responses/createUserResponse";
+import CreateUserRequest from "../models/requests/createUserRequest";
+import { ContributorProfession } from "../enums/ContribuitorProfession";
 
 export const AuthService = {
-  login(email: string, password: string) {
-    const users = UserService.getAll(); 
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (user) {
-      if (typeof window !== "undefined") {
-        Cookies.set("loggedUser", JSON.stringify(user), {
-          path: "/",
-          sameSite: "lax",
-        });
-      }
-      return user;
+  loginAsync: async (email: string, password: string): Promise<void> => {
+    const response = await api.post("/login?useCookies=true&useSessionCookies=true", {email, password});
+    if (response.status != 200) {
+      throw new Error("Login failed");
     }
-
-    return null;
   },
 
   logout() {
     if (typeof window !== "undefined") {
-      Cookies.remove("loggedUser", { path: "/" });
+      Cookies.remove("auth_cookie", { path: "/" });
     }
   },
 
-  getLoggedUser() {
-    if (typeof window !== "undefined") {
-      const user = Cookies.get("loggedUser");
-      return user ? JSON.parse(user) : null;
+  async getLoggedUser(): Promise<User | null> {    
+    const currentLoggedUserData = await api.get("/contributors/me");
+
+    if (currentLoggedUserData.status == 200) {
+      const user = currentLoggedUserData.data;
+      return {
+        id: user.contributorId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        department: user.department,
+        position: user.position
+      };
     }
-    return null; 
+    return null;
   },
+
+  registerAsync: async (userData: User): Promise<CreateUserResponse> => {
+      const payload: CreateUserRequest = {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        password: userData.password ?? "",
+        department: userData.department,
+        contributorProfession: ContributorProfession[userData.position as keyof typeof ContributorProfession]
+      };
+  
+      const response = await api.post("/contributors/register", payload);
+  
+      return response.data;
+    },
 };

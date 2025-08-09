@@ -9,18 +9,17 @@ import {
 } from "@/app/components/atoms/CardComponent";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
-import { Bug, BugService } from "@/app/services/bugService";
+import { BugService } from "@/app/services/bugService";
+import { Bug } from "@/app/models/Bug";
 import {
   Bug as BugIcon,
   Calendar,
   User,
-  Settings,
   ArrowLeft,
   MessageSquare,
   Clock,
   CheckCircle,
   AlertTriangle,
-  Package,
   FileText,
   Monitor,
   GitBranch,
@@ -33,8 +32,7 @@ import {
 } from "lucide-react";
 import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
-import { AuthService } from "@/app/services/authService";
-import { User as UserModel, UserService } from "@/app/services/userService";
+import { UserService } from "@/app/services/userService";
 import { Project, ProjectService } from "@/app/services/projectService";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { CommentsSection } from "./BugComments";
@@ -45,6 +43,9 @@ import {
   DefeitoHistoricoService,
 } from "@/app/services/logService";
 import BugHistoryTab from "./BugLogs";
+import UserModel from "@/app/models/User";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 interface BugViewProps {
   bugId: string;
@@ -65,7 +66,7 @@ const BugView = ({ bugId }: BugViewProps) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [comments, setComments] = useState<Comment[] | undefined>([]);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const loggedUser = useAtomValue(userAtom);
 
   useEffect(() => {
     fetchAll();
@@ -568,7 +569,7 @@ const BugView = ({ bugId }: BugViewProps) => {
               </div>
             )}
 
-            {activeTab === "comments" && (
+            {activeTab === "comments" && loggedUser && (
               <CommentsSection bugId={bugId} loggedUser={loggedUser} />
             )}
 

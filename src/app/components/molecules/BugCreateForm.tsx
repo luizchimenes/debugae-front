@@ -18,16 +18,17 @@ import {
   SelectValue,
 } from "../atoms/SelectComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
-import { User, UserService } from "@/app/services/userService";
-import { AuthService } from "@/app/services/authService";
+import { UserService } from "@/app/services/userService";
 import { Project, ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
 import { BugService } from "@/app/services/bugService";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { AcaoRealizada } from "@/app/enums/AcaoRealizada";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { findSimilarBugs } from "@/app/services/duplicatedService";
-import DuplicatedBugModal from "../organism/DuplicatedBugModal";
+import DuplicatedBugModal, { DuplicatedBug } from "../organism/DuplicatedBugModal";
+import User from "@/app/models/User";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_SUMMARY_LENGTH = 100;
@@ -53,10 +54,10 @@ const BugCreateForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [showSimilarBugsModal, setShowSimilarBugsModal] = useState(false);
-  const [similarBugs, setSimilarBugs] = useState<any[]>([]);
-  const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
+  const [similarBugs, setSimilarBugs] = useState<DuplicatedBug[]>([]);
+  const [, setIsCheckingSimilarity] = useState(false);
 
-  const loggedUser: User = AuthService.getLoggedUser();
+  const user = useAtomValue(userAtom);
 
   useEffect(() => {
     setAllProjects(ProjectService.getAllProjects());
@@ -241,7 +242,6 @@ const BugCreateForm = () => {
     } else if (currentStep === 2) {
       if (validateStep2()) {
         const canProceed = await checkForSimilarBugs();
-        console.log(canProceed)
         if (canProceed) {
           setCurrentStep(3);
           setErrors({});
@@ -305,7 +305,7 @@ const BugCreateForm = () => {
         expectedBehavior,
         stackTrace,
         attachment,
-        createdBy: loggedUser.id,
+        createdBy: user?.id || "",
         status: StatusDefeito.NOVO,
         createdDate: new Date(),
         expiredDate,
@@ -383,7 +383,7 @@ const BugCreateForm = () => {
       </h2>
       <hr />
       <div className="flex justify-between items-center my-4 relative px-4">
-        {steps.map((step, index) => (
+        {steps.map((step) => (
           <div
             key={step.number}
             className="flex items-center flex-col sm:flex-row z-10"
@@ -442,7 +442,7 @@ const BugCreateForm = () => {
                     <SelectLabel className="text-gray-500 dark:text-gray-400">
                       Projetos
                     </SelectLabel>
-                    {allProjects.map((project: any) => (
+                    {allProjects.map((project: Project) => (
                       <SelectItem
                         key={project.id}
                         value={project.id}
@@ -479,7 +479,7 @@ const BugCreateForm = () => {
                     <SelectLabel className="text-gray-500 dark:text-gray-400">
                       Contribuintes
                     </SelectLabel>
-                    {projectContributors.map((user: any) => (
+                    {projectContributors.map((user: User) => (
                       <SelectItem
                         key={user.id}
                         value={user.id}

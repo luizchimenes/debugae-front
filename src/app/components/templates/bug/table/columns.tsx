@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/atoms/DropdownMenuComponent";
 import { Project, ProjectService } from "@/app/services/projectService";
-import { User, UserService } from "@/app/services/userService";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -113,7 +112,7 @@ export const columns: ColumnDef<Bug>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

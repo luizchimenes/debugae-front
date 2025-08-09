@@ -5,7 +5,7 @@ import { Input } from "@/app/components/atoms/InputComponent";
 import { Label } from "@/app/components/atoms/LabelComponent";
 import { Textarea } from "@/app/components/atoms/TextAreaComponent";
 import { ScrollArea } from "@/app/components/atoms/ScrollAreaComponent";
-import { User, UserService } from "@/app/services/userService";
+import { UserService } from "@/app/services/userService";
 import { Button } from "@/app/components/atoms";
 import { Project, ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import {
   X,
   FileText, 
 } from "lucide-react";
+import User from "@/app/models/User";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -54,7 +55,7 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   }, [show, project]);
 
   const validateForm = () => {
-    let newErrors: { [key: string]: string } = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!projectName.trim()) {
       newErrors.projectName = "Nome do projeto é obrigatório.";

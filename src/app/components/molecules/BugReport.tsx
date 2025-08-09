@@ -8,11 +8,6 @@ import {
 } from "@/app/components/atoms/ChartComponent";
 import {
   Bug,
-  Filter,
-  Download,
-  Search,
-  Calendar,
-  User,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -30,26 +25,29 @@ import {
   PieChart,
   Cell,
   ResponsiveContainer,
-  LineChart,
-  Line,
   Area,
   AreaChart,
   Pie,
 } from "recharts";
-import { Button, Card, CardHeader, CardTitle, Input } from "../atoms";
+import { Button, Card, CardHeader, CardTitle } from "../atoms";
 import { CardContent, CardDescription } from "../atoms/CardComponent";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import { BugService, Bug as BugModel } from "@/app/services/bugService";
-import { AuthService } from "@/app/services/authService";
+import { BugService } from "@/app/services/bugService";
+import { Bug as BugModel } from "@/app/models/Bug";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { format } from "date-fns";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
+
+interface TimelineData {
+  date: string;
+  bugs: number;
+}
 
 const BugReport = () => {
   const [bugs, setBugs] = useState<BugModel[] | undefined>();
-  const [loading, setLoading] = useState(false);
-  const loggedUser = AuthService.getLoggedUser();
-  const [timelineData, setTimelineData] = useState<any>();
+  const [, setLoading] = useState(false);
+  const loggedUser = useAtomValue(userAtom);
+  const [timelineData, setTimelineData] = useState<TimelineData[]>();
 
   useEffect(() => {
     fetchAll();
@@ -83,7 +81,6 @@ const BugReport = () => {
         bugs: grouped[date] || 0,
       }));
 
-      console.log(timelineData);
       setTimelineData(timelineData);
     } catch (error) {
       console.error("Erro ao carregar defeitos", error);
@@ -187,27 +184,6 @@ const BugReport = () => {
     resolvido: bugs?.filter((bug) => bug.status === StatusDefeito.RESOLVIDO)
       .length,
     alta: bugs?.filter((bug) => bug.severity === "ALTA").length,
-  };
-
-  const exportToPDF = async () => {
-    const input = document.getElementById("bug-report");
-
-    if (!input) return;
-
-    const canvas = await html2canvas(input, {
-      scale: 2,
-      useCORS: true,
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("relatorio-defeitos.pdf");
   };
 
   const chartConfig = {

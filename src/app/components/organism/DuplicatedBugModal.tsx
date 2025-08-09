@@ -6,7 +6,7 @@ import { Button } from "../atoms";
 import { UtilService } from "@/app/services/utilService";
 import { useRouter } from "next/navigation";
 
-interface Bug {
+export interface DuplicatedBug {
   id: string;
   projectId: string;
   summary: string;
@@ -25,7 +25,7 @@ interface SimilarBugsModalProps {
   show: boolean;
   onClose: () => void;
   onContinue: () => void;
-  similarBugs: Bug[];
+  similarBugs: DuplicatedBug[];
   getStatusColor: (status: string) => string;
 }
 
@@ -60,7 +60,7 @@ const BugItem = React.memo(
     onBugClick,
     getStatusColor,
   }: {
-    bug: Bug;
+    bug: DuplicatedBug;
     onBugClick: (id: string) => void;
     getStatusColor: (status: string) => string;
   }) => {

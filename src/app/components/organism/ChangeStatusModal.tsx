@@ -3,9 +3,9 @@
 import { X, Loader2 } from "lucide-react"; 
 import React, { useState, useEffect } from "react";
 import { Button } from "../atoms";
-import { Bug, BugService } from "@/app/services/bugService"; 
+import { BugService } from "@/app/services/bugService"; 
+import { Bug } from "@/app/models/Bug";
 import { StatusDefeito } from "../../../app/enums/StatusDefeito"; 
-import { AuthService } from "@/app/services/authService";
 import { toast } from "sonner";
 
 
@@ -53,7 +53,6 @@ const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
     }
 
     setUpdatingStatus(true);
-    const currentUser = AuthService.getLoggedUser();
 
     try {
       const updatedBugData = { ...bug, status: selectedStatus };

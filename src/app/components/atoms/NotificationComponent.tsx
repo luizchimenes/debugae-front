@@ -9,13 +9,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../atoms/DropdownMenuComponent";
-import { AuthService } from "@/app/services/authService";
 import { AcaoRealizada } from "@/app/enums/AcaoRealizada";
 import {
   DefeitoHistorico,
   DefeitoHistoricoService,
 } from "@/app/services/logService";
 import { BugService } from "@/app/services/bugService";
+import { useAtom } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const NotificationCard = () => {
   const [notifications, setNotifications] = useState<
@@ -26,12 +27,13 @@ const NotificationCard = () => {
     new Set()
   );
 
+  const [user, ]= useAtom(userAtom);
+
   useEffect(() => {
-    const currentUser = AuthService.getLoggedUser();
-    if (!currentUser?.id) return;
+    if (!user?.id) return;
 
     const readNotificationsJson = localStorage.getItem(
-      `readNotifications_${currentUser.id}`
+      `readNotifications_${user.id}`
     );
     const readNotificationsSet = readNotificationsJson
       ? new Set<string>(JSON.parse(readNotificationsJson) as string[])
@@ -43,14 +45,14 @@ const NotificationCard = () => {
     const allBugs = BugService.getAllBugs();
 
     const userNotifications = allHistorico
-      .filter((log: any) => {
-        if (log.realizadoPorUserId === currentUser.id) return false;
+      .filter((log: DefeitoHistorico) => {
+        if (log.realizadoPorUserId === user.id) return false;
 
         const bug = allBugs.find((b) => b.id === log.bugId);
 
-        return bug && bug.contributorId === currentUser.id;
+        return bug && bug.contributorId === user.id;
       })
-      .map((log: any) => {
+      .map((log: DefeitoHistorico) => {
         const bug = allBugs.find((b) => b.id === log.bugId);
         return {
           ...log,
@@ -104,8 +106,7 @@ const NotificationCard = () => {
   };
 
   const handleDropdownOpen = () => {
-    const currentUser = AuthService.getLoggedUser();
-    if (!currentUser?.id) return;
+    if (!user?.id) return;
 
     const allNotificationIds = notifications.map((n) => n.id);
     const updatedReadNotifications = new Set([
@@ -117,7 +118,7 @@ const NotificationCard = () => {
     setUnreadCount(0);
 
     localStorage.setItem(
-      `readNotifications_${currentUser.id}`,
+      `readNotifications_${user.id}`,
       JSON.stringify([...updatedReadNotifications])
     );
   };

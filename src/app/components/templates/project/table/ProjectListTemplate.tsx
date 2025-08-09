@@ -7,16 +7,19 @@ import { columns } from "./columns";
 import { Project, ProjectService } from "@/app/services/projectService";
 import { useEffect, useState } from "react";
 import { Card } from "@/app/components/atoms";
-import { AuthService } from "@/app/services/authService";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const ProjectListTemplate = () => {
   const [data, setData] = useState<Project[]>([]);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const loggedUser = useAtomValue(userAtom);
 
   useEffect(() => {
-    setData(ProjectService.getAllProjectsByUser(loggedUser.id));
-  }, []);
+    if (loggedUser && loggedUser.id) {
+      setData(ProjectService.getAllProjectsByUser(loggedUser.id));
+    }
+  }, [loggedUser]);
 
   return (
     <div className="bg-gradient-main dark:bg-gradient-main min-h-screen flex flex-col">

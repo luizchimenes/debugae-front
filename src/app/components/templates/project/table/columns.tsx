@@ -6,13 +6,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/app/components/atoms/DropdownMenuComponent";
+import User from "@/app/models/User";
 import { AuthService } from "@/app/services/authService";
-import { User, UserService } from "@/app/services/userService";
+import { UserService } from "@/app/services/userService";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export type Project = {
@@ -101,12 +100,15 @@ export const columns: ColumnDef<Project>[] = [
     accessorKey: "adminId",
     header: "Situação",
     cell: ({ row }) => {
-      const loggedUser = AuthService.getLoggedUser()
+      const [loggedUser, setLoggedUser] = useState<User | null>(null);
 
+      useEffect(() => {
+        AuthService.getLoggedUser().then(setLoggedUser);
+      }, []);
 
       return (
         <div>
-          {row.getValue("adminId") === loggedUser.id ? "Administrador" : "Membro"}
+          {loggedUser && row.getValue("adminId") === loggedUser.id ? "Administrador" : "Membro"}
         </div>
       );
     },

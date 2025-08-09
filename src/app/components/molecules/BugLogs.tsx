@@ -8,13 +8,6 @@ import { DefeitoHistorico } from "@/app/services/logService";
 import { AcaoRealizada } from "@/app/enums/AcaoRealizada";
 import { UtilService } from "@/app/services/utilService";
 
-
-interface UserData {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
-
 interface BugHistoryTabProps {
   history: DefeitoHistorico[] | undefined;
   getStatusColor: (status: string) => string;

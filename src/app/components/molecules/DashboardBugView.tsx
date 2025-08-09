@@ -2,14 +2,13 @@
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/app/components/atoms/CardComponent";
 import { Button } from "../atoms";
-import { AuthService } from "@/app/services/authService";
-import { Bug, BugService } from "@/app/services/bugService";
+import { BugService } from "@/app/services/bugService";
+import { Bug } from "@/app/models/Bug";
 import { useEffect, useState } from "react";
 import {
   Bug as BugIcon,
@@ -27,19 +26,24 @@ import { UtilService } from "@/app/services/utilService";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
 
 const DashboardBugView = () => {
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const loggedUser = useAtomValue(userAtom);
 
   const router = useRouter();
 
   useEffect(() => {
     const fetchBugs = async () => {
       try {
-        const data = BugService.getAllBugsByUser(loggedUser.id);
+        let data: Bug[] = [];
+        if (loggedUser && loggedUser.id) {
+          data = BugService.getAllBugsByUser(loggedUser.id);
+        }
         setBugs(data || []);
       } catch (error) {
         console.error("Erro ao carregar defeitos:", error);
