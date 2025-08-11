@@ -33,7 +33,7 @@ import {
 import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
 import { UserService } from "@/app/services/userService";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { CommentsSection } from "./BugComments";
 import { UtilService } from "@/app/services/utilService";
@@ -46,6 +46,7 @@ import BugHistoryTab from "./BugLogs";
 import UserModel from "@/app/models/User";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import { Project } from "@/app/models/Project";
 
 interface BugViewProps {
   bugId: string;

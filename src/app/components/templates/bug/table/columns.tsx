@@ -9,7 +9,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/app/components/atoms/DropdownMenuComponent";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { Project } from "@/app/models/Project";
+import { ProjectService } from "@/app/services/projectService";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";

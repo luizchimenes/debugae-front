@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/app/components/atoms/InputComponent";
 import { Label } from "@/app/components/atoms/LabelComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
@@ -21,6 +21,7 @@ import {
 import User from "@/app/models/User";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import CreateProjectRequest from "@/app/models/requests/createProjectRequest";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -28,21 +29,16 @@ const ProjectCreateForm = () => {
   const router = useRouter();
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
-  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [, setSelectedContributor] = useState<
     string | undefined
   >(undefined);
+  const loggedUser = useAtomValue(userAtom);
   const [contributors, setContributors] = useState<string[]>([]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-
-  const loggedUser = useAtomValue(userAtom);
-
-  useEffect(() => {
-    setAllUsers(UserService.getAll());
-  }, []);
+  const [currentContributorToAdd, setCurrentContributorToAdd] = useState("");
 
   const validateStep1 = () => {
     const newErrors: { [key: string]: string } = {};
@@ -66,15 +62,18 @@ const ProjectCreateForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAddContributor = (userId: string) => {
-    if (userId && !contributors.includes(userId)) {
-      setContributors([...contributors, userId]);
+  const handleAddContributor = (userEmail: string) => {
+    console.log("Adding contributor:", userEmail);
+    if (userEmail) {
+      contributors.push(userEmail);
       setSelectedContributor(undefined);
+      setCurrentContributorToAdd("");
+      console.log("Contributors:", contributors);
     }
   };
 
-  const handleRemoveContributor = (id: string) => {
-    setContributors(contributors.filter((c) => c !== id));
+  const handleRemoveContributor = (userEmail: string) => {
+    setContributors(contributors.filter((c) => c !== userEmail));
   };
 
   const handleNextStep = () => {
@@ -108,12 +107,13 @@ const ProjectCreateForm = () => {
         return;
       }
 
-      await ProjectService.saveProject({
-        name: projectName,
-        description: projectDescription,
-        contributors,
-        adminId: loggedUser.id
-      });
+      const request: CreateProjectRequest = {
+        projectName: projectName,
+        projectDescription: projectDescription,
+        contributorsEmails: contributors,
+      }
+
+      await ProjectService.saveProjectAsync(request);
 
       setProjectName("");
       setProjectDescription("");
@@ -133,18 +133,24 @@ const ProjectCreateForm = () => {
       setTimeout(() => {
         router.push("/www/project/list");
       }, 1000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar projeto:", error);
-      toast.error("Erro ao criar projeto.", {
-        description: "Ocorreu um erro ao salvar o projeto. Tente novamente.",
-      });
+      if (error.message){
+        toast.error(error.response?.data?.message || error.message);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getContributorDetails = (id: string) => {
-    return allUsers.find((user) => user.id === id);
+  React.useEffect(() => {
+    if (loggedUser && !contributors.includes(loggedUser?.email)) {
+      contributors.push(loggedUser?.email || "");
+    }
+  }, [contributors]);
+
+  const getContributorDetails = (email: string) => {
+    return contributors.find((userEmail) => userEmail === email);
   };
 
   return (
@@ -279,31 +285,30 @@ const ProjectCreateForm = () => {
                 Usuários Disponíveis
               </h3>
               <ScrollArea className="h-[200px] border border-gray-200 dark:border-gray-700 rounded-lg p-2">
-                <div className="space-y-2">
-                  {allUsers.map((user: User) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between p-3 border border-gray-100 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div>
-                        <div className="font-medium text-gray-800 dark:text-white">
-                          {user.firstName} {user.lastName}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {user.email}
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={() => handleAddContributor(user.id)}
-                        disabled={contributors.includes(user.id)}
-                        className="p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        variant="ghost"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
+                <div className="flex gap-2">
+                  <Input
+                    id="addContributor"
+                    type="text"
+                    value={currentContributorToAdd}
+                    placeholder="Digite o e-mail de um usuário..."
+                    onChange={(e) => {
+                      setCurrentContributorToAdd(e.target.value);
+                      if (errors.currentContributorToAdd) {
+                        setErrors((prev) => ({ ...prev, currentContributorToAdd: "" }));
+                      }
+                    }}
+                    required
+                    className={`w-full ${errors.currentContributorToAdd ? "border-red-500 dark:border-red-400" : ""}`}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => handleAddContributor(currentContributorToAdd)}
+                    disabled={contributors.includes(currentContributorToAdd)}
+                    className="p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="ghost"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
                 </div>
               </ScrollArea>
             </div>
@@ -320,28 +325,26 @@ const ProjectCreateForm = () => {
                       <p>Nenhum colaborador adicionado</p>
                     </div>
                   ) : (
-                    contributors.map((id) => {
-                      const user = getContributorDetails(id);
+                    contributors.map((email) => {
+                      const user = getContributorDetails(email);
                       if (!user) return null;
 
                       return (
                         <div
-                          key={user.id}
+                          key={email}
                           className="flex items-center justify-between p-3 border border-green-200 dark:border-green-700 rounded-lg bg-green-50 dark:bg-green-900/50"
                         >
                           <div>
                             <div className="font-medium text-gray-800 dark:text-white">
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {user.email}
+                              {email} 
                             </div>
                           </div>
                           <Button
                             type="button"
-                            onClick={() => handleRemoveContributor(user.id)}
+                            onClick={() => handleRemoveContributor(email)}
                             className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors"
                             variant="ghost"
+                            disabled={email === loggedUser?.email}
                           >
                             <X className="w-4 h-4" />
                           </Button>

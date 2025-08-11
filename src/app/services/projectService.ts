@@ -1,13 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  contributors: string[];
-  adminId: string;
-  createdAt: Date;
-}
+import { Project } from "../models/Project";
+import CreateProjectRequest from "../models/requests/createProjectRequest";
+import api from "../config/axiosConfig";
 
 const PROJECTS_KEY = "projects";
 
@@ -23,6 +17,16 @@ export const ProjectService = {
     const projects = ProjectService.getAllProjects();
     projects.push(newProject);
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  },
+
+  saveProjectAsync: async (project: CreateProjectRequest): Promise<void> => {
+    const response = await api.post("/projects/create", project);
+    if (response.status === 400) {
+      throw new Error(response.data.message);
+    }
+    if (response.status !== 201) {
+      throw new Error("Erro interno ao salvar projeto, contacte o administrador.");
+    }
   },
 
   deleteProject: (id: string) => {

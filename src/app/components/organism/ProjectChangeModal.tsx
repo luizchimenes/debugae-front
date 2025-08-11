@@ -7,7 +7,7 @@ import { Textarea } from "@/app/components/atoms/TextAreaComponent";
 import { ScrollArea } from "@/app/components/atoms/ScrollAreaComponent";
 import { UserService } from "@/app/services/userService";
 import { Button } from "@/app/components/atoms";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -18,6 +18,7 @@ import {
   FileText, 
 } from "lucide-react";
 import User from "@/app/models/User";
+import { Project } from "@/app/models/Project";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 

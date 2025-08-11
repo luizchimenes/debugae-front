@@ -3,8 +3,8 @@
 import { ThemeToggle } from "../../../molecules/ThemeToggle";
 import DashboardHeader from "../../../organism/DashboardHeader";
 import { ProjectDataTable } from "../../../molecules/ProjectDataTable";
-import { columns } from "./columns";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { columns, Project } from "./columns";
+import { ProjectService } from "@/app/services/projectService";
 import { useEffect, useState } from "react";
 import { Card } from "@/app/components/atoms";
 import { useAtomValue } from "jotai";

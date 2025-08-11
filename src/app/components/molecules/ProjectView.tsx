@@ -10,7 +10,7 @@ import {
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
 import { UserService } from "@/app/services/userService";
-import { ProjectService, Project } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import {
   Bug,
   Users,
@@ -33,6 +33,7 @@ import { AuthService } from "@/app/services/authService";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { toast } from "sonner";
 import User from "@/app/models/User";
+import { Project } from "@/app/models/Project";
 
 interface ProjectViewProps {
   projectId: string;

@@ -7,7 +7,7 @@ import {
   CardDescription,
 } from "@/app/components/atoms/CardComponent";
 import { Button } from "../atoms";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import { useEffect, useState } from "react";
 import {
   FolderOpen,
@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import { Project } from "@/app/models/Project";
 
 const DashboardProjectView = () => {
   const [projects, setProjects] = useState<Project[]>([]);

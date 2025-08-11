@@ -19,7 +19,7 @@ import {
 } from "../atoms/SelectComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
 import { UserService } from "@/app/services/userService";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
 import { BugService } from "@/app/services/bugService";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -29,6 +29,7 @@ import DuplicatedBugModal, { DuplicatedBug } from "../organism/DuplicatedBugModa
 import User from "@/app/models/User";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import { Project } from "@/app/models/Project";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_SUMMARY_LENGTH = 100;
