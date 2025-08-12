@@ -6,6 +6,9 @@ import { PaginatedRequest } from "../models/requests/paginatedRequest";
 import { GetCurrentUsersProject } from "../models/responses/getCurrentUserProjectsResponse";
 import { UserProject } from "../models/UserProject";
 import { GetProjectDetailsResponse } from "../models/responses/getProjectDetailsResponse";
+import { UpdateProjectRequest } from "../models/requests/updateProjectRequest";
+import { UpdateProjectResponse } from "../models/responses/updateProjectResponse";
+import { ManageContributorsRequest } from "../models/requests/manageContributorsRequest";
 
 const PROJECTS_KEY = "projects";
 
@@ -97,25 +100,19 @@ export const ProjectService = {
     });
   },
 
-  updateProject: async (updatedProjectData: Project): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const projects: Project[] = ProjectService.getAllProjects();
-        const projectIndex = projects.findIndex(
-          (p: Project) => p.id === updatedProjectData.id
-        );
+  updateProject: async (updatedProjectData: UpdateProjectRequest): Promise<UpdateProjectResponse> => {
+    const response = await api.patch("/projects/updateProject", updatedProjectData);
 
-        if (projectIndex !== -1) {
-          projects[projectIndex] = {
-            ...updatedProjectData,
-            createdAt: projects[projectIndex].createdAt
-          };
-          localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
-          resolve();
-        } else {
-          reject(new Error("Projeto não encontrado para atualização."));
-        }
-      }, 500); 
-    });
+    return response.data;
   },
+
+  manageContributorsAsync: async (manageContributorsRequest: ManageContributorsRequest): Promise<ManageContributorsRequest> => {
+    const response = await api.post("/projects/manageContributors", manageContributorsRequest);
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data as ManageContributorsRequest;
+  }
 };

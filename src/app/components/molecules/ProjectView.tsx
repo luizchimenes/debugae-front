@@ -24,9 +24,8 @@ import {
   Tag,
   Settings,
   ArrowLeft,
+  User as UserIcon,
 } from "lucide-react";
-import { BugService } from "@/app/services/bugService";
-import { Bug as Bugs } from "@/app/models/Bug";
 import ProjectEditModal from "../organism/ProjectChangeModal";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/app/services/authService";
@@ -35,6 +34,8 @@ import { toast } from "sonner";
 import User from "@/app/models/User";
 import { GetProjectDetailsResponse, GetProjectDetailsResponseDefect } from "@/app/models/responses/getProjectDetailsResponse";
 import { Project } from "@/app/models/Project";
+import { UpdateProjectResponse } from "@/app/models/responses/updateProjectResponse";
+import ManageProjectContributorsModal from "../organism/ManageProjectContributorsModal";
 
 interface ProjectViewProps {
   projectId: string;
@@ -42,13 +43,13 @@ interface ProjectViewProps {
 
 const ProjectView = ({ projectId }: ProjectViewProps) => {
   const [project, setProject] = useState<GetProjectDetailsResponse | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [bugs, setBugs] = useState<GetProjectDetailsResponseDefect[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [showChangeModal, setShowChangeModal] = useState(false);
+  const [showContributorsModal, setShowContributorsModal] = useState(false);
 
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
 
@@ -121,15 +122,18 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     setShowChangeModal(false);
   };
 
-  const handleProjectUpdated = (updatedProject: Project) => {
-     setProject(
-      {
-        projectId: updatedProject.id, 
-        projectName: updatedProject.name, 
-        projectDescription: updatedProject.description, 
-        colaborators: updatedProject.contributors.map(c => ({colaboratorId: c, colaboratorName: "", colaboratorRole: "Contributor"})), 
-        createdAt: updatedProject.createdAt.toISOString()
-      } as GetProjectDetailsResponse);
+  const handleOpenManageContributorsModal = () => {
+    setShowContributorsModal(true);
+  };
+
+  const handleCloseManageContributorsModal = () => {
+    setShowContributorsModal(false);
+  };
+
+  const handleProjectUpdated = (updatedProject: UpdateProjectResponse) => {
+    if (!project) return;
+    project.projectName = updatedProject.projectName;
+    project.projectDescription = updatedProject.projectDescription;
   };
 
   const handleViewDefect = async (defectId: string) => {
@@ -167,6 +171,19 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     return { total, open, inProgress, resolved };
   };
 
+  if (isLoading) {
+    return (
+      <>
+        {isLoading && (
+          <LoadingOverlay
+            title="Buscando projeto..."
+            subtitle="Buscando informações do projeto"
+            showDots={true}
+          />
+        )}
+      </>
+    );
+  }
 
   if (!project) {
     return (
@@ -186,10 +203,6 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   }
 
   const stats = getDefectStats();
-
-  if (isLoading) {
-    return <LoadingOverlay />;
-  }
 
   const isAdmin = () => {
     return project.colaborators.some(
@@ -213,6 +226,13 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
             <Button variant="outline" size="sm" onClick={handleOpenEditModal}>
               <Settings className="w-4 h-4 mr-2" />
               Configurações
+            </Button>
+          )}
+
+          {loggedUser && isAdmin() && (
+            <Button variant="outline" size="sm" onClick={handleOpenManageContributorsModal}>
+              <UserIcon className="w-4 h-4 mr-2" />
+              Gerenciar contribuidores
             </Button>
           )}
 
@@ -329,6 +349,13 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
         onClose={handleCloseEditModal}
         project={{id: project.projectId, name: project.projectName, description: project.projectDescription, contributors: project.colaborators.map(c => c.colaboratorId), createdAt: new Date( project.createdAt)}}
         onProjectUpdated={handleProjectUpdated}
+      />
+
+      <ManageProjectContributorsModal
+        show={showContributorsModal}
+        onClose={handleCloseManageContributorsModal}
+        currentContributors={project.colaborators.map(c => c.colaboratorEmail)}
+        projectId={project.projectId}
       />
 
       <Card>

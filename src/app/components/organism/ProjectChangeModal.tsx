@@ -17,8 +17,9 @@ import {
   X,
   FileText, 
 } from "lucide-react";
-import User from "@/app/models/User";
 import { Project } from "@/app/models/Project";
+import { UpdateProjectRequest } from "@/app/models/requests/updateProjectRequest";
+import { UpdateProjectResponse } from "@/app/models/responses/updateProjectResponse";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -26,7 +27,7 @@ interface ProjectEditModalProps {
   show: boolean;
   onClose: () => void;
   project: Project | null;
-  onProjectUpdated: (updatedProject: Project) => void;
+  onProjectUpdated: (updatedProject: UpdateProjectResponse) => void;
 }
 
 const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
@@ -38,7 +39,6 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   const [currentProject, setCurrentProject] = useState<Project | null>(project);
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
-  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [selectedContributors, setSelectedContributors] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -50,7 +50,6 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       setProjectName(project.name);
       setProjectDescription(project.description);
       setSelectedContributors(project.contributors);
-      setAllUsers(UserService.getAll()); 
       setErrors({}); 
     }
   }, [show, project]);
@@ -76,16 +75,6 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAddContributor = (userId: string) => {
-    if (userId && !selectedContributors.includes(userId)) {
-      setSelectedContributors((prev) => [...prev, userId]);
-    }
-  };
-
-  const handleRemoveContributor = (id: string) => {
-    setSelectedContributors((prev) => prev.filter((c) => c !== id));
-  };
-
   const handleSave = async () => {
     if (!project) return;
 
@@ -96,14 +85,13 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         return;
       }
 
-      const updatedProject: Project = {
-        ...project,
-        name: projectName,
-        description: projectDescription,
-        contributors: selectedContributors,
+      const request: UpdateProjectRequest = {
+        projectId: project.id,
+        projectName: projectName,
+        projectDescription: projectDescription,
       };
 
-      await ProjectService.updateProject(updatedProject);
+      const updatedProject: UpdateProjectResponse = await ProjectService.updateProject(request);
 
       toast.success("Projeto atualizado com sucesso!", {
         description: "As informações do projeto foram salvas.",
@@ -120,11 +108,6 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       setIsLoading(false);
     }
   };
-
-  const getContributorDetails = (id: string) => {
-    return allUsers.find((user) => user.id === id);
-  };
-
   if (!show || !currentProject) return null;
 
   const hasChanges =
@@ -214,96 +197,7 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
               </div>
             </div>
           </div>
-
-          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
-              <UsersIcon className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-              Gerenciar Colaboradores
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
-                  <UserIcon className="w-5 h-5 mr-2 text-primary dark:text-primary-400" />
-                  Usuários Disponíveis
-                </h3>
-                <ScrollArea className="h-[200px] border border-gray-200 dark:border-gray-700 rounded-lg p-2">
-                  <div className="space-y-2">
-                    {allUsers.map((user: User) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between p-3 border border-gray-100 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <div>
-                          <div className="font-medium text-gray-800 dark:text-white">
-                            {user.firstName} {user.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {user.email}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={() => handleAddContributor(user.id)}
-                          disabled={selectedContributors.includes(user.id)}
-                          className="p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          variant="ghost"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
-                  <UsersIcon className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                  Colaboradores do Projeto ({selectedContributors.length})
-                </h3>
-                <ScrollArea className="h-[200px] border border-gray-200 dark:border-gray-700 rounded-lg p-2">
-                  <div className="space-y-2">
-                    {selectedContributors.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <UsersIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhum colaborador adicionado</p>
-                      </div>
-                    ) : (
-                      selectedContributors.map((id) => {
-                        const user = getContributorDetails(id);
-                        if (!user) return null;
-
-                        return (
-                          <div
-                            key={user.id}
-                            className="flex items-center justify-between p-3 border border-green-200 dark:border-green-700 rounded-lg bg-green-50 dark:bg-green-900/50"
-                          >
-                            <div>
-                              <div className="font-medium text-gray-800 dark:text-white">
-                                {user.firstName} {user.lastName}
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {user.email}
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              onClick={() => handleRemoveContributor(user.id)}
-                              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors"
-                              variant="ghost"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-            </div>
-          </div>
         </div>
-
         <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancelar

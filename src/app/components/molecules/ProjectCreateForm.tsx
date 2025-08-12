@@ -63,8 +63,7 @@ const ProjectCreateForm = () => {
   };
 
   const handleAddContributor = (userEmail: string) => {
-    console.log("Adding contributor:", userEmail);
-    if (userEmail) {
+    if (userEmail && !contributors.includes(userEmail)) {
       contributors.push(userEmail);
       setSelectedContributor(undefined);
       setCurrentContributorToAdd("");

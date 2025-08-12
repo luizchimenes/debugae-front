@@ -2,6 +2,7 @@ export interface GetProjectDetailsResponseColaborator {
   colaboratorId: string;
   colaboratorName: string;
   colaboratorRole: string;
+  colaboratorEmail: string;
 }
 
 export interface GetProjectDetailsResponseDefect {
