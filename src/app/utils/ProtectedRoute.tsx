@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Progress } from "../components/atoms/ProgressComponent";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { userAtom } from "../stores/atoms/userAtom";
+import Cookies from "js-cookie";
+import { AuthService } from "../services/authService";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,7 +16,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [progress, setProgress] = useState(0);
-  const currentLoggedUser = useAtomValue(userAtom)
+  const [currentLoggedUser, setCurrentLoggedUser] = useAtom(userAtom)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -29,17 +31,26 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }, []);
 
   useEffect(() => {
-    const user = currentLoggedUser;
-
-    if (!user) {
+    const cookie = Cookies.get("auth_cookie");
+    
+    if (!cookie) {
       router.replace("/www/login");
     } else {
+      const checkUserData = async () => {
+        if (currentLoggedUser == null) {
+          const userData = await AuthService.getLoggedUser();
+          setCurrentLoggedUser(userData);
+        }
+      }
+
       setTimeout(() => {
         setProgress(100);
         setTimeout(() => {
           setIsCheckingAuth(false);
         }, 200);
       }, 300);
+
+      checkUserData();
     }
   }, []);
 

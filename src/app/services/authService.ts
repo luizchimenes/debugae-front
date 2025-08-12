@@ -14,9 +14,6 @@ export const AuthService = {
   },
 
   async logout() {
-    if (typeof window !== "undefined") {
-      Cookies.remove("auth_cookie", { path: "/" });
-    }
     await api.get("/contributors/logout");
   },
 

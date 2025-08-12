@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from "uuid";
 import { Project } from "../models/Project";
 import CreateProjectRequest from "../models/requests/createProjectRequest";
 import api from "../config/axiosConfig";
+import { PaginatedRequest } from "../models/requests/paginatedRequest";
+import { GetCurrentUsersProject } from "../models/responses/getCurrentUserProjectsResponse";
 
 const PROJECTS_KEY = "projects";
 
@@ -51,6 +53,16 @@ export const ProjectService = {
     return projects.filter(
       (project) => project.adminId === id || project.contributors.includes(id)
     );
+  },
+
+  getAllProjectsByUserAsync: async (paginatedRequest: PaginatedRequest): Promise<GetCurrentUsersProject> => {
+    const response = await api.get(`/projects/getCurrentUserProjects?page=${paginatedRequest.page}&pageSize=${paginatedRequest.pageSize}`);
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+    
+    return response.data.data as GetCurrentUsersProject;
   },
 
   updateProjectContributors: async (

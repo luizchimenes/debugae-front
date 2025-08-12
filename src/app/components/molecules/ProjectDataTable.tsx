@@ -164,9 +164,9 @@ export function ProjectDataTable<TData, TValue>({
                 </label>
                 <Input
                   placeholder="Filtrar por nome..."
-                  value={getFilterValue("name")}
+                  value={getFilterValue("projectName")}
                   onChange={(event) =>
-                    setFilterValue("name", event.target.value)
+                    setFilterValue("projectName", event.target.value)
                   }
                   className="h-10 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400"
                 />
@@ -178,9 +178,9 @@ export function ProjectDataTable<TData, TValue>({
                 </label>
                 <Input
                   placeholder="Filtrar por descrição..."
-                  value={getFilterValue("description")}
+                  value={getFilterValue("projectDescription")}
                   onChange={(event) =>
-                    setFilterValue("description", event.target.value)
+                    setFilterValue("projectDescription", event.target.value)
                   }
                   className="h-10 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400"
                 />
