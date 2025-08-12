@@ -13,8 +13,7 @@ import { GetCurrentUsersProject } from "@/app/models/responses/getCurrentUserPro
 import { toast } from "sonner";
 
 const ProjectListTemplate = () => {
-  const [data, setData] = useState<GetCurrentUsersProject>({items: [], pageSize: 10, page: 1, totalItems: 0});
-
+  const [data, setData] = useState<GetCurrentUsersProject>({items: [], pageSize: 10, page: 1, totalCount: 0});
   const loggedUser = useAtomValue(userAtom);
 
   useEffect(() => {
@@ -24,7 +23,6 @@ const ProjectListTemplate = () => {
           const projects = await ProjectService.getAllProjectsByUserAsync({ page: 1, pageSize: 10 });
           const data: GetCurrentUsersProject = projects;
           setData(data);
-          console.log("Projetos do usuário:", data.items);
         } catch (error) {
           toast.error("Erro ao buscar projetos do usuário.");
         }
@@ -38,7 +36,7 @@ const ProjectListTemplate = () => {
       <DashboardHeader />
       <main className="flex items-center justify-center py-8">
         <Card className="w-full max-w-[1350px] mx-auto p-8 dark:bg-gray-800 rounded-lg shadow-md border border-primary">
-          <ProjectDataTable columns={columns} data={data.items} />
+          <ProjectDataTable columns={columns} data={data.items}/>
         </Card>
       </main>
       <ThemeToggle />

@@ -4,6 +4,8 @@ import CreateProjectRequest from "../models/requests/createProjectRequest";
 import api from "../config/axiosConfig";
 import { PaginatedRequest } from "../models/requests/paginatedRequest";
 import { GetCurrentUsersProject } from "../models/responses/getCurrentUserProjectsResponse";
+import { UserProject } from "../models/UserProject";
+import { GetProjectDetailsResponse } from "../models/responses/getProjectDetailsResponse";
 
 const PROJECTS_KEY = "projects";
 
@@ -12,13 +14,6 @@ export const ProjectService = {
     if (typeof window === "undefined") return [];
     const projectsJson = localStorage.getItem(PROJECTS_KEY);
     return projectsJson ? JSON.parse(projectsJson) : [];
-  },
-
-  saveProject: (project: Omit<Project, "id" | "createdAt">) => {
-    const newProject: Project = { ...project, id: uuidv4(), createdAt: new Date() };
-    const projects = ProjectService.getAllProjects();
-    projects.push(newProject);
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
   },
 
   saveProjectAsync: async (project: CreateProjectRequest): Promise<void> => {
@@ -45,14 +40,14 @@ export const ProjectService = {
     return project;
   },
 
-  getAllProjectsByUser: (id: string): Project[] => {
-    if (typeof window === "undefined") return [];
+  getProjectDetailsAsync: async (projectId: string): Promise<GetProjectDetailsResponse> => {
+    const projectDetailsResponse = await api.get(`projects/projectDetails?projectId=${projectId}`);
 
-    const projects = ProjectService.getAllProjects();
+    if (projectDetailsResponse.status !== 200) {
+      throw new Error(projectDetailsResponse.data.message);
+    }
 
-    return projects.filter(
-      (project) => project.adminId === id || project.contributors.includes(id)
-    );
+    return projectDetailsResponse.data as GetProjectDetailsResponse;
   },
 
   getAllProjectsByUserAsync: async (paginatedRequest: PaginatedRequest): Promise<GetCurrentUsersProject> => {
@@ -63,6 +58,16 @@ export const ProjectService = {
     }
     
     return response.data.data as GetCurrentUsersProject;
+  },
+
+  getAllProjectByUserAsync: async() : Promise<UserProject[]> => {
+    const response = await api.get("/projects/getAllProjectsFromUser");
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data.data as UserProject[];
   },
 
   updateProjectContributors: async (

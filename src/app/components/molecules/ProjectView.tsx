@@ -33,6 +33,7 @@ import { AuthService } from "@/app/services/authService";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { toast } from "sonner";
 import User from "@/app/models/User";
+import { GetProjectDetailsResponse, GetProjectDetailsResponseDefect } from "@/app/models/responses/getProjectDetailsResponse";
 import { Project } from "@/app/models/Project";
 
 interface ProjectViewProps {
@@ -40,9 +41,9 @@ interface ProjectViewProps {
 }
 
 const ProjectView = ({ projectId }: ProjectViewProps) => {
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<GetProjectDetailsResponse | null>(null);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [bugs, setBugs] = useState<Bugs[]>([]);
+  const [bugs, setBugs] = useState<GetProjectDetailsResponseDefect[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
@@ -65,18 +66,11 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [projectData, userData, bugData] = await Promise.all([
-          ProjectService.getById(projectId),
-          UserService.getAll(),
-          BugService.getProjectById(projectId),
-        ]);
-
-        if (projectData) {
-          setProject(projectData);
-        }
-        setAllUsers(userData);
-        if (bugData) {
-          setBugs(bugData);
+        const projectDetails = await ProjectService.getProjectDetailsAsync(projectId);
+        
+        if (projectDetails) {
+          setProject(projectDetails);
+          setBugs(projectDetails.defects || []);
         }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
@@ -128,7 +122,14 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   };
 
   const handleProjectUpdated = (updatedProject: Project) => {
-    setProject(updatedProject);
+     setProject(
+      {
+        projectId: updatedProject.id, 
+        projectName: updatedProject.name, 
+        projectDescription: updatedProject.description, 
+        colaborators: updatedProject.contributors.map(c => ({colaboratorId: c, colaboratorName: "", colaboratorRole: "Contributor"})), 
+        createdAt: updatedProject.createdAt.toISOString()
+      } as GetProjectDetailsResponse);
   };
 
   const handleViewDefect = async (defectId: string) => {
@@ -152,7 +153,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     const matchesStatus =
       selectedStatus === "all" || bug.status === selectedStatus;
     const matchesPriority =
-      selectedPriority === "all" || bug.severity === selectedPriority;
+      selectedPriority === "all" || bug.defectPriority === selectedPriority;
 
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -184,28 +185,31 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     );
   }
 
-  const contributorNames = project.contributors.map((id) => {
-    const user = allUsers.find((u) => u.id === id);
-    return user ? `${user.firstName} ${user.lastName}` : "Desconhecido";
-  });
-
   const stats = getDefectStats();
 
   if (isLoading) {
     return <LoadingOverlay />;
   }
 
+  const isAdmin = () => {
+    return project.colaborators.some(
+      (colab) =>
+        colab.colaboratorId === loggedUser?.id &&
+        colab.colaboratorRole.toLowerCase() === "administrator"
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {project.name}
+            {project.projectName}
           </h1>
           <p className="text-gray-600 mt-1 dark:text-white">
             Exportar
           </p>
-          {loggedUser && loggedUser.id === project.adminId && (
+          {loggedUser && isAdmin() && (
             <Button variant="outline" size="sm" onClick={handleOpenEditModal}>
               <Settings className="w-4 h-4 mr-2" />
               Configurações
@@ -227,10 +231,10 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-2xl mb-2 dark:text-white">
-                {project.name}
+                {project.projectName}
               </CardTitle>
               <CardDescription className="text-base mb-4">
-                {project.description}
+                {project.projectDescription}
               </CardDescription>
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
@@ -245,7 +249,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span className="dark:text-white">
-                    {project.contributors.length} colaboradores
+                    {project.colaborators.length} colaboradores
                   </span>
                 </div>
               </div>
@@ -323,7 +327,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
       <ProjectEditModal
         show={showChangeModal}
         onClose={handleCloseEditModal}
-        project={project}
+        project={{id: project.projectId, name: project.projectName, description: project.projectDescription, contributors: project.colaborators.map(c => c.colaboratorId), createdAt: new Date( project.createdAt)}}
         onProjectUpdated={handleProjectUpdated}
       />
 
@@ -334,16 +338,16 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
             Colaboradores do Projeto
           </CardTitle>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-            {contributorNames.map((name, index) => (
+            {project.colaborators.map((colaborador) => (
               <div
-                key={index}
+                key={colaborador.colaboratorId}
                 className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
               >
                 <div className="w-8 h-8 bg-purple-400 dark:bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  {name.charAt(0)}
+                  {colaborador.colaboratorName.charAt(0).toUpperCase()}
                 </div>
                 <span className="font-medium text-gray-800 dark:text-gray-100 truncate">
-                  {name}
+                  {colaborador.colaboratorName}
                 </span>
               </div>
             ))}
@@ -435,7 +439,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
                           <div
-                            className={`w-3 h-3 rounded-full ${getPriorityColor(bug.severity)}`}
+                            className={`w-3 h-3 rounded-full ${getPriorityColor(bug.defectPriority)}`}
                           ></div>
                           <h3 className="font-semibold text-gray-800 truncate dark:text-white">
                             #{bug.id} - {bug.summary}
@@ -458,14 +462,14 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                             <span className="dark:text-white">
                               Criado:{" "}
                               {new Date(
-                                bug.createdDate || ""
+                                bug.createdAt || ""
                               ).toLocaleDateString("pt-BR")}
                             </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Tag className="w-4 h-4" />
                             <span className="dark:text-white">
-                              Prioridade: {bug.severity}
+                              Prioridade: {bug.defectPriority}
                             </span>
                           </div>
                         </div>

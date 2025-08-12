@@ -3,6 +3,6 @@ export interface Project {
   name: string;
   description: string;
   contributors: string[];
-  adminId: string;
+  //adminId: string;
   createdAt: Date;
 }
