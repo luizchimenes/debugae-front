@@ -4,6 +4,10 @@ import { AuthService } from "./authService";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
 import { StatusDefeito } from "../enums/StatusDefeito";
 import { Bug } from "../models/Bug";
+import FindDuplicatedDefectRequest from "../models/requests/findDuplicatesDefectsRequest";
+import api from "../config/axiosConfig";
+import { FindDefectDuplicatesResponse } from "../models/responses/getDefectDuplicatedResponse";
+import { CreateDefectResponse } from "../models/responses/createDefectResponse";
 
 const BUGS_KEY = "bugs";
 
@@ -139,4 +143,20 @@ export const BugService = {
   getProjectById: (id: string): Bug[] => {
     return BugService.getAllBugs().filter((bug) => bug.projectId === id);
   },
+
+  getDefectDuplicatesAsync: async (request: FindDuplicatedDefectRequest): Promise<FindDefectDuplicatesResponse> => {
+    const response = await api.post('/defects/findDuplicates', request);
+
+    return response.data as FindDefectDuplicatesResponse;
+  },
+
+  createDefectAsync: async (formData: FormData): Promise<CreateDefectResponse> => {
+    const response = await api.post('/defects/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    return response.data as CreateDefectResponse;
+  } 
 };
