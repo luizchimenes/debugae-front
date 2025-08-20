@@ -31,9 +31,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }, []);
 
   useEffect(() => {
-    const cookie = Cookies.get("auth_cookie");
-    
-    if (!cookie) {
+    if (!currentLoggedUser) {
       router.replace("/www/login");
     } else {
       const checkUserData = async () => {

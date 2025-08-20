@@ -158,7 +158,7 @@ const ManageProjectContributorsModal: React.FC<ManageProjectContributorsModalPro
                       <Button
                         type="button"
                         onClick={() => handleRemoveContributor(contributor)}
-                        disabled={isLoading}
+                        disabled={isLoading || contributor == loggedUser?.email}
                         className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         variant="ghost"
                         size="sm"
