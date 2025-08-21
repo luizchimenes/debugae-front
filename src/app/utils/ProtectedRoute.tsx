@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Progress } from "../components/atoms/ProgressComponent";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { userAtom } from "../stores/atoms/userAtom";
-import Cookies from "js-cookie";
 import { AuthService } from "../services/authService";
 
 interface ProtectedRouteProps {
@@ -16,53 +15,51 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [currentLoggedUser, setCurrentLoggedUser] = useAtom(userAtom)
+  const [currentLoggedUser, setCurrentLoggedUser] = useAtom(userAtom);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev < 90) return prev + 10;
-        clearInterval(interval);
-        return prev;
-      });
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => (prev < 90 ? prev + 10 : prev));
     }, 200);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (!currentLoggedUser) {
-      router.replace("/www/login");
-    } else {
-      const checkUserData = async () => {
-        if (currentLoggedUser == null) {
-          const userData = await AuthService.getLoggedUser();
-          setCurrentLoggedUser(userData);
+    const checkAuth = async () => {
+      try {
+        let user = currentLoggedUser;
+        if (!user) {
+          user = await AuthService.getLoggedUser();
+          if (user) {
+            setCurrentLoggedUser(user);
+          }
         }
-      }
 
-      setTimeout(() => {
+        if (!user) {
+          router.replace("/www/login");
+          return;
+        }
+
         setProgress(100);
-        setTimeout(() => {
-          setIsCheckingAuth(false);
-        }, 200);
-      }, 300);
+        setTimeout(() => setIsCheckingAuth(false), 500);
 
-      checkUserData();
-    }
-  }, []);
+      } catch (error) {
+        console.error("Erro de autenticação:", error);
+        router.replace("/www/login");
+      }
+    };
 
-  return (
-    <>
-      {isCheckingAuth && (
-        <div className="fixed top-0 left-0 w-full z-50">
-          <Progress
-            value={progress}
-            className="h-1 w-full transition-all duration-300"
-          />
-        </div>
-      )}
-      {children}
-    </>
-  );
+    checkAuth();
+    return () => clearInterval(progressInterval);
+  }, [currentLoggedUser, router, setCurrentLoggedUser]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="fixed top-0 left-0 w-full z-50">
+        <Progress
+          value={progress}
+          className="h-1 w-full transition-all duration-300"
+        />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
