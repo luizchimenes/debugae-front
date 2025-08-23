@@ -22,9 +22,12 @@ export interface GetProjectDetailsResponse {
   createdAt: string;
   totalColaborators: number;
   totalDefects: number;
-  totalDefectsOpen: number;
-  totalDefectsInProgress: number;
-  totalDefectsResolved: number;
+  totalOpen: number;
+  totalClosed: number;
+  totalResolved: number;
+  totalInvalid: number;
+  totalReopened: number;
+  totalWaitingForUser: number;
   colaborators: GetProjectDetailsResponseColaborator[];
   defects: GetProjectDetailsResponseDefect[];
 }
