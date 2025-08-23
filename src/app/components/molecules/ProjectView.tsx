@@ -77,7 +77,6 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
         const projectDetails = await ProjectService.getProjectDetailsAsync(projectId);
         
         if (projectDetails) {
-          console.log(projectDetails)
           setProject(projectDetails);
           setBugs(projectDetails.defects || []);
           setTotalDefectsOpen(projectDetails.totalOpen);
@@ -177,7 +176,6 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   });
 
   const getDefectStats = () => {
-    console.log(bugs)
     const total = bugs.length;
     const open = bugs.filter((d) => d.status === "open").length;
     const inProgress = bugs.filter((d) => d.status === "in Progress").length;
