@@ -104,7 +104,7 @@ const DashboardProjectView = () => {
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Você ainda não participa de nenhum projeto
               </p>
-              <Button>
+              <Button onClick={() => handleRedirect("/www/project/create")}>
                 <Plus className="w-4 h-4 mr-2" />
                 Criar Projeto
               </Button>

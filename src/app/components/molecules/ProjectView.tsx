@@ -215,8 +215,6 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     );
   }
 
-  const stats = getDefectStats();
-
   const isAdmin = () => {
     return project.colaborators.some(
       (colab) =>
@@ -467,9 +465,11 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">Todos os Status</option>
-                <option value="Novo">Abertos</option>
-                <option value="in-progress">Em Progresso</option>
-                <option value="resolved">Resolvidos</option>
+                <option value="Resolved">Resolvidos</option>
+                <option value="Invalid">Inválidos</option>
+                <option value="Reopened">Reabertos</option>
+                <option value="WaitingForUser">Aguardando usuário</option>
+                <option value="New">Novos</option>
               </select>
               <select
                 value={selectedPriority}
@@ -477,10 +477,11 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">Todas as Prioridades</option>
-                <option value="critical">Crítica</option>
-                <option value="high">Alta</option>
-                <option value="medium">Média</option>
-                <option value="low">Baixa</option>
+                <option value="P1">{"Muito alta (P1)"}</option>
+                <option value="P2">{"Alta (P2)"}</option>
+                <option value="P3">{"Média (P3)"}</option>
+                <option value="P4">{"Baixa (P4)"}</option>
+                <option value="P5">{"Muito baixa (P5)"}</option>
               </select>
             </div>
           </div>

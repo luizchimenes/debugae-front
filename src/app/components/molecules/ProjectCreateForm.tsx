@@ -67,7 +67,6 @@ const ProjectCreateForm = () => {
       contributors.push(userEmail);
       setSelectedContributor(undefined);
       setCurrentContributorToAdd("");
-      console.log("Contributors:", contributors);
     }
   };
 
