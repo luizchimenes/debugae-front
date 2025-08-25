@@ -1,7 +1,7 @@
 // app/services/defeitoHistoricoService.ts
 
 import { v4 as uuidv4 } from "uuid";
-import { Bug } from "../models/Bug";
+import { Bug, BugOld } from "../models/Bug";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
 
 export interface DefeitoHistorico {
@@ -9,8 +9,8 @@ export interface DefeitoHistorico {
   bugId: string; 
   criadoEm: Date;
   acaoRealizada: AcaoRealizada;
-  dadosAntigos?: Partial<Bug>; 
-  dadosNovos?: Partial<Bug>;
+  dadosAntigos?: Partial<BugOld>; 
+  dadosNovos?: Partial<BugOld>;
   realizadoPorUserId: string; 
   comentario?: string; 
 }
@@ -40,8 +40,8 @@ export const DefeitoHistoricoService = {
     bugId: string,
     acao: AcaoRealizada,
     realizadoPorUserId: string,
-    dadosAntigos?: Partial<Bug>,
-    dadosNovos?: Partial<Bug>,
+    dadosAntigos?: Partial<BugOld>,
+    dadosNovos?: Partial<BugOld>,
     comentario?: string 
   ): DefeitoHistorico => {
     const now = new Date();

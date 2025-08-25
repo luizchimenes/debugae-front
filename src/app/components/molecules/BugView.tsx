@@ -10,7 +10,7 @@ import {
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
 import { BugService } from "@/app/services/bugService";
-import { Bug } from "@/app/models/Bug";
+import { Bug, BugOld } from "@/app/models/Bug";
 import {
   Bug as BugIcon,
   Calendar,
@@ -30,7 +30,7 @@ import {
   Eye,
   Download,
 } from "lucide-react";
-import ChangeStatusModal from "../organism/ChangeStatusModal";
+// import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
 import { UserService } from "@/app/services/userService";
 import { ProjectService } from "@/app/services/projectService";
@@ -52,12 +52,9 @@ interface BugViewProps {
   bugId: string;
 }
 
-type BugWithProject = Bug & {
-  project?: Project;
-};
 
 const BugView = ({ bugId }: BugViewProps) => {
-  const [bug, setBug] = useState<BugWithProject | undefined>();
+  const [bug, setBug] = useState<Bug | undefined>();
   const [contributor, setContributor] = useState<UserModel | undefined>();
   const [creator, setCreator] = useState<UserModel | undefined>();
   const [project, setProject] = useState<Project | undefined>();
@@ -77,24 +74,12 @@ const BugView = ({ bugId }: BugViewProps) => {
     try {
       setLoading(true);
 
-      const bugData = await BugService.getBugById(bugId);
+      const bugData = await BugService.getBugByIdAsync(bugId);
+
+      console.log(bugData)
 
       setBug(bugData);
 
-      const [userData, rawComments, creatorData, projectData, logsData] =
-        await Promise.all([
-          UserService.getById(bugData?.contributorId),
-          CommentService.getAllCommentsByBug(bugData?.id),
-          UserService.getById(bugData?.createdBy),
-          ProjectService.getById(bugData?.projectId),
-          DefeitoHistoricoService.getByBugId(bugData?.id),
-        ]);
-
-      setContributor(userData);
-      setCreator(creatorData);
-      setComments(rawComments);
-      setProject(projectData);
-      setLogs(logsData);
     } catch (error) {
       console.error("Erro ao carregar dados do defeito:", error);
     } finally {
@@ -244,10 +229,10 @@ const BugView = ({ bugId }: BugViewProps) => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Defeito #{bug.id || "N/A"}
+            Defeito #{bug.defectId || "N/A"}
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
-            {bug.summary || "Sem resumo"}
+            {bug.defectSummary || "Sem resumo"}
           </p>
         </div>
         <div className="flex space-x-3">
@@ -271,7 +256,7 @@ const BugView = ({ bugId }: BugViewProps) => {
         </div>
       </div>
 
-      {bug && (
+      {/* {bug && (
         <ChangeStatusModal
           show={showStatusModal}
           onClose={handleCloseStatusModal}
@@ -279,25 +264,25 @@ const BugView = ({ bugId }: BugViewProps) => {
           onStatusChanged={handleBugStatusChanged}
           getStatusColor={getStatusColor}
         />
-      )}
+      )} */}
 
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-2xl mb-2 dark:text-white">
-                {bug.summary || "Sem título"}
+                {bug.defectSummary || "Sem título"}
               </CardTitle>
               <CardDescription className="text-base mb-4">
-                {bug.description || "Sem descrição"}
+                {bug.defectDescription || "Sem descrição"}
               </CardDescription>
               <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-300">
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4" />
                   <span>
                     Criado em{" "}
-                    {bug.createdDate
-                      ? UtilService.formatDate(bug.createdDate)
+                    {bug.createdAt
+                      ? UtilService.formatDate(bug.createdAt)
                       : "Data não disponível"}
                   </span>
                 </div>
@@ -305,7 +290,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                   <User className="w-4 h-4" />
                   <span>
                     Por{" "}
-                    {creator?.firstName + " " + creator?.lastName ||
+                    {bug.createdByUser ||
                       "Usuário desconhecido"}
                   </span>
                 </div>
@@ -322,16 +307,16 @@ const BugView = ({ bugId }: BugViewProps) => {
               <div>
                 <CardDescription>Severidade</CardDescription>
                 <CardTitle
-                  className={`text-2xl ${getSeverityColor(bug.severity || "Baixa")} dark:text-white`}
+                  className={`text-2xl ${getSeverityColor(bug.defectSeverity || "Baixa")} dark:text-white`}
                 >
-                  {bug.severity || "Não definida"}
+                  {bug.defectSeverity || "Não definida"}
                 </CardTitle>
               </div>
               <div
-                className={`p-3 ${getSeverityBgColor(bug.severity || "Baixa")} rounded-lg`}
+                className={`p-3 ${getSeverityBgColor(bug.defectSeverity || "Baixa")} rounded-lg`}
               >
                 <AlertTriangle
-                  className={`w-6 h-6 ${getSeverityColor(bug.severity || "Baixa")}`}
+                  className={`w-6 h-6 ${getSeverityColor(bug.defectSeverity || "Baixa")}`}
                 />
               </div>
             </div>
@@ -344,16 +329,16 @@ const BugView = ({ bugId }: BugViewProps) => {
               <div>
                 <CardDescription>Status</CardDescription>
                 <CardTitle
-                  className={`text-2xl ${getStatusColor(bug.status || "Aberto")} dark:text-white`}
+                  className={`text-2xl ${getStatusColor(bug.defectStatus || "Aberto")} dark:text-white`}
                 >
-                  {bug.status || "Não definido"}
+                  {bug.defectStatus || "Não definido"}
                 </CardTitle>
               </div>
               <div
-                className={`p-3 ${getStatusBgColor(bug.status || "Aberto")} rounded-lg`}
+                className={`p-3 ${getStatusBgColor(bug.defectStatus || "Aberto")} rounded-lg`}
               >
-                {React.cloneElement(getStatusIcon(bug.status || "Aberto"), {
-                  className: `w-6 h-6 ${getStatusColor(bug.status || "Aberto")}`,
+                {React.cloneElement(getStatusIcon(bug.defectStatus || "Aberto"), {
+                  className: `w-6 h-6 ${getStatusColor(bug.defectStatus || "Aberto")}`,
                 })}
               </div>
             </div>
@@ -366,16 +351,16 @@ const BugView = ({ bugId }: BugViewProps) => {
               <div>
                 <CardDescription>Expira em</CardDescription>
                 <CardTitle
-                  className={`text-2xl ${getExpirationTextColor(bug.expiredDate)}`}
+                  className={`text-2xl ${getExpirationTextColor(bug.expirationDate)}`}
                 >
-                  {UtilService.formatDate(bug.expiredDate) || "N/A"}
+                  {UtilService.formatDate(bug.expirationDate) || "N/A"}
                 </CardTitle>
               </div>
               <div
-                className={`p-3 rounded-lg border ${getExpirationBgColor(bug.expiredDate)}`}
+                className={`p-3 rounded-lg border ${getExpirationBgColor(bug.expirationDate)}`}
               >
                 <Clock1
-                  className={`w-6 h-6 ${getExpirationTextColor(bug.expiredDate)} `}
+                  className={`w-6 h-6 ${getExpirationTextColor(bug.expirationDate)} `}
                 />
               </div>
             </div>
@@ -388,7 +373,7 @@ const BugView = ({ bugId }: BugViewProps) => {
               <div>
                 <CardDescription>Categoria</CardDescription>
                 <CardTitle className="text-2xl text-purple-600 dark:text-purple-400">
-                  {bug.category || "Não definida"}
+                  {bug.defectCategory || "Não definida"}
                 </CardTitle>
               </div>
               <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
@@ -407,11 +392,11 @@ const BugView = ({ bugId }: BugViewProps) => {
           </CardTitle>
           <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mt-4">
             <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-medium">
-              {(contributor?.firstName || "U").charAt(0).toUpperCase()}
+              {(bug.responsibleContributor.contributorName || "U").charAt(0).toUpperCase()}
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                {contributor?.firstName + " " + contributor?.lastName ||
+                {bug.responsibleContributor.contributorName ||
                   "Usuário desconhecido"}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -452,7 +437,7 @@ const BugView = ({ bugId }: BugViewProps) => {
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2 inline" />
-              Comentários ({comments?.length})
+              Comentários ({bug.comments.length})
             </button>
             <button
               onClick={() => setActiveTab("history")}
@@ -489,54 +474,54 @@ const BugView = ({ bugId }: BugViewProps) => {
                     Descrição
                   </h3>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    {bug.description || "Nenhuma descrição disponível"}
+                    {bug.defectDescription || "Nenhuma descrição disponível"}
                   </p>
                 </div>
 
-                {bug.environment && (
+                {bug.details.defectEnvironment && (
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
                       <Monitor className="w-4 h-4 mr-2" />
                       Ambiente
                     </h3>
                     <p className="text-gray-800 dark:text-gray-200 bg-blue-50 dark:bg-gray-900 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
-                      {bug.environment}
+                      {bug.details.defectEnvironment}
                     </p>
                   </div>
                 )}
 
-                {(bug.currentBehavior || bug.expectedBehavior) && (
+                {(bug.details.actualBehaviour || bug.details.expectedBehaviour) && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {bug.currentBehavior && (
+                    {bug.details.actualBehaviour && (
                       <div>
                         <h3 className="font-semibold text-red-700 dark:text-red-400 mb-3">
                           ❌ Comportamento Atual
                         </h3>
                         <p className="text-red-700 dark:text-red-300 bg-red-50 dark:bg-gray-900 p-4 rounded-lg border border-red-100 dark:border-red-800">
-                          {bug.currentBehavior}
+                          {bug.details.actualBehaviour}
                         </p>
                       </div>
                     )}
-                    {bug.expectedBehavior && (
+                    {bug.details.expectedBehaviour && (
                       <div>
                         <h3 className="font-semibold text-green-700 dark:text-green-400 mb-3">
                           ✅ Comportamento Esperado
                         </h3>
                         <p className="text-green-700 dark:text-green-300 bg-green-50 dark:bg-gray-900 p-4 rounded-lg border border-green-100 dark:border-green-800">
-                          {bug.expectedBehavior}
+                          {bug.details.expectedBehaviour}
                         </p>
                       </div>
                     )}
                   </div>
                 )}
 
-                {bug.stackTrace && (
+                {bug.defectStatus && (
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
                       🔍 Stack Trace
                     </h3>
                     <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm font-mono">
-                      {bug.stackTrace}
+                      {bug.defectStatus}
                     </pre>
                   </div>
                 )}
@@ -547,7 +532,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                       Projeto
                     </p>
                     <p className="font-semibold text-gray-900 dark:text-white">
-                      {project?.name || "Não especificado"}
+                      {bug.details.projectName || "Não especificado"}
                     </p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
@@ -555,7 +540,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                       Categoria
                     </p>
                     <p className="font-semibold text-gray-900 dark:text-white">
-                      {bug.category || "Não definida"}
+                      {bug.defectCategory || "Não definida"}
                     </p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
@@ -563,7 +548,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                       Responsável
                     </p>
                     <p className="font-semibold text-gray-900 dark:text-white">
-                      {contributor?.firstName || "Não atribuído"}
+                      {bug.responsibleContributor.contributorName || "Não atribuído"}
                     </p>
                   </div>
                 </div>
@@ -595,11 +580,11 @@ const BugView = ({ bugId }: BugViewProps) => {
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {UtilService.getFileName(bug.attachment)}
+                              {UtilService.getFileName(bug.attachment.fileName)}
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {UtilService.getFileType(bug.attachment)} •{" "}
-                              {UtilService.getFileSize(bug.attachment)}
+                              {UtilService.getFileType(bug.attachment.fileType)} •{" "}
+                              {bug.attachment.uploadedBy}
                             </p>
                           </div>
                         </div>
@@ -607,17 +592,17 @@ const BugView = ({ bugId }: BugViewProps) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => UtilService.downloadAttachment(bug.attachment!)}
+                            onClick={() => UtilService.downloadAttachment(bug.attachment?.fileName!)}
                             className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900"
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Baixar
                           </Button>
-                          {UtilService.isImageFile(bug.attachment) && (
+                          {UtilService.isImageFile(bug.attachment.fileType) && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => UtilService.previewAttachment(bug.attachment!)}
+                              onClick={() => UtilService.previewAttachment(bug.attachment?.fileName!)}
                               className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900"
                             >
                               <Eye className="w-4 h-4 mr-2" />
@@ -627,19 +612,6 @@ const BugView = ({ bugId }: BugViewProps) => {
                         </div>
                       </div>
 
-                      {UtilService.isImageFile(bug.attachment) && (
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <img
-                            src={bug.attachment}
-                            alt="Anexo do defeito"
-                            className="max-w-full h-auto max-h-64 rounded-lg border border-gray-200 dark:border-gray-700"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                            }}
-                          />
-                        </div>
-                      )}
                     </div>
 
                     <div className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
@@ -647,7 +619,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                         <AlertTriangle className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
                         <span>
                           Este anexo foi enviado em{" "}
-                          {UtilService.formatDate(bug.createdDate)} por{" "}
+                          {UtilService.formatDate(bug.createdAt)} por{" "}
                           {creator?.firstName + " " + creator?.lastName}
                         </span>
                       </div>

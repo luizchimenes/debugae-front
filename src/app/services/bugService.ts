@@ -3,19 +3,21 @@ import { DefeitoHistoricoService } from "./logService";
 import { AuthService } from "./authService";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
 import { StatusDefeito } from "../enums/StatusDefeito";
-import { Bug } from "../models/Bug";
+import { Bug, BugOld } from "../models/Bug";
 import FindDuplicatedDefectRequest from "../models/requests/findDuplicatesDefectsRequest";
 import api from "../config/axiosConfig";
 import { FindDefectDuplicatesResponse } from "../models/responses/getDefectDuplicatedResponse";
 import { CreateDefectResponse } from "../models/responses/createDefectResponse";
+import { UserBug } from "../models/UserBug";
+import User from "../models/User";
 
 const BUGS_KEY = "bugs";
 
 export const BugService = {
-  getAllBugs: (): Bug[] => {
+  getAllBugs: (): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = localStorage.getItem(BUGS_KEY);
-    const bugs: Bug[] = bugsJson ? JSON.parse(bugsJson) : [];
+    const bugs: BugOld[] = bugsJson ? JSON.parse(bugsJson) : [];
     return bugs.map((bug) => ({
       ...bug,
       createdDate: new Date(bug.createdDate),
@@ -23,7 +25,7 @@ export const BugService = {
     }));
   },
 
-  getAllBugsByUser: (id: string): Bug[] => {
+  getAllBugsByUser: (id: string): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = BugService.getAllBugs().filter(
       (bug) => bug.contributorId === id
@@ -31,7 +33,17 @@ export const BugService = {
     return bugsJson || [];
   },
 
-  getAllBugsByProject: (id: string): Bug[] => {
+  getAllBugsByUserAsync: async() : Promise<UserBug[]> => {
+    const response = await api.get("/defects/getAllDefectsFromUser");
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data.data as UserBug[];
+  },
+
+  getAllBugsByProject: (id: string): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = BugService.getAllBugs().filter(
       (bug) => bug.projectId === id
@@ -39,8 +51,8 @@ export const BugService = {
     return bugsJson || [];
   },
 
-  saveBug: async (bug: Omit<Bug, "id">): Promise<Bug> => {
-    const newBug: Bug = { ...bug, id: uuidv4() };
+  saveBug: async (bug: Omit<BugOld, "id">): Promise<BugOld> => {
+    const newBug: BugOld = { ...bug, id: uuidv4() };
     const bugs = BugService.getAllBugs();
     bugs.push(newBug);
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
@@ -85,7 +97,7 @@ export const BugService = {
     const oldBug = BugService.getBugById(updatedBug.id);
     if (!oldBug) {
       console.warn(
-        `Bug com ID ${updatedBug.id} não encontrado para atualização.`
+        `Bug com ID ${updatedBug.defectId} não encontrado para atualização.`
       );
       return;
     }
@@ -136,13 +148,22 @@ export const BugService = {
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
   },
 
-  getBugById: (id: string): Bug | undefined => {
+  getBugById: (id: string): BugOld | undefined => {
     return BugService.getAllBugs().find((bug) => bug.id === id);
   },
 
-  getProjectById: (id: string): Bug[] => {
-    return BugService.getAllBugs().filter((bug) => bug.projectId === id);
+  getBugByIdAsync: async (id: string): Promise<Bug> => {
+    const response = await api.get(`/defects/defectDetails?defectId=${id}`);
+
+    console.log(response)
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data.defectData as Bug;
   },
+
 
   getDefectDuplicatesAsync: async (request: FindDuplicatedDefectRequest): Promise<FindDefectDuplicatesResponse> => {
     const response = await api.post('/defects/findDuplicates', request);

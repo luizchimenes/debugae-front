@@ -32,11 +32,12 @@ import {
 import { Button, Card, CardHeader, CardTitle } from "../atoms";
 import { CardContent, CardDescription } from "../atoms/CardComponent";
 import { BugService } from "@/app/services/bugService";
-import { Bug as BugModel } from "@/app/models/Bug";
+import { BugOld as BugModel } from "@/app/models/Bug";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { format } from "date-fns";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import { UserBug } from "@/app/models/UserBug";
 
 interface TimelineData {
   date: string;
@@ -44,7 +45,7 @@ interface TimelineData {
 }
 
 const BugReport = () => {
-  const [bugs, setBugs] = useState<BugModel[] | undefined>();
+  const [bugs, setBugs] = useState<UserBug[] | undefined>();
   const [, setLoading] = useState(false);
   const loggedUser = useAtomValue(userAtom);
   const [timelineData, setTimelineData] = useState<TimelineData[]>();
@@ -58,15 +59,14 @@ const BugReport = () => {
       setLoading(true);
       if (!loggedUser?.id) return;
 
-      const bugData: BugModel[] = await BugService.getAllBugsByUser(
-        loggedUser.id
+      const bugData: UserBug[] = await BugService.getAllBugsByUserAsync(
       );
       setBugs(bugData);
 
       const grouped: Record<string, number> = {};
 
       bugData.forEach((bug) => {
-        const dateKey = format(new Date(bug.createdDate), "dd/MM");
+        const dateKey = format(new Date(bug.createdAt), "dd/MM");
         grouped[dateKey] = (grouped[dateKey] || 0) + 1;
       });
 
@@ -131,49 +131,49 @@ const BugReport = () => {
   const severityData = [
     {
       name: "Muito Alta",
-      value: bugs?.filter((bug) => bug.severity == "1").length,
+      value: bugs?.filter((bug) => bug.defectPriority == "P1").length,
       color: "#EF4444",
     },
     {
       name: "Alta",
-      value: bugs?.filter((bug) => bug.severity === "2").length,
+      value: bugs?.filter((bug) => bug.defectPriority === "P2").length,
       color: "#F59E0B",
     },
     {
       name: "Média",
-      value: bugs?.filter((bug) => bug.severity === "3").length,
+      value: bugs?.filter((bug) => bug.defectPriority === "P3").length,
       color: "#F59E0B",
     },
     {
       name: "Baixa",
-      value: bugs?.filter((bug) => bug.severity === "4").length,
+      value: bugs?.filter((bug) => bug.defectPriority === "P4").length,
       color: "#3B82F6",
     },
     {
       name: "Muito Baixa",
-      value: bugs?.filter((bug) => bug.severity === "5").length,
+      value: bugs?.filter((bug) => bug.defectPriority === "P5").length,
       color: "#3B82F6",
     },
   ];
 
-  const categoryData = [
-    {
-      name: "Funcional",
-      value: bugs?.filter((bug) => bug.category == "Funcional").length || 0,
-    },
-    {
-      name: "Interface",
-      value: bugs?.filter((bug) => bug.category == "Interface").length || 0,
-    },
-    {
-      name: "Performance",
-      value: bugs?.filter((bug) => bug.category == "Performance").length || 0,
-    },
-    {
-      name: "Melhoria",
-      value: bugs?.filter((bug) => bug.category == "Melhoria").length || 0,
-    },
-  ];
+  // const categoryData = [
+  //   {
+  //     name: "Funcional",
+  //     value: bugs?.filter((bug) => bug.category == "Funcional").length || 0,
+  //   },
+  //   {
+  //     name: "Interface",
+  //     value: bugs?.filter((bug) => bug.category == "Interface").length || 0,
+  //   },
+  //   {
+  //     name: "Performance",
+  //     value: bugs?.filter((bug) => bug.category == "Performance").length || 0,
+  //   },
+  //   {
+  //     name: "Melhoria",
+  //     value: bugs?.filter((bug) => bug.category == "Melhoria").length || 0,
+  //   },
+  // ];
 
   const metrics = {
     total: bugs?.length,
@@ -183,7 +183,7 @@ const BugReport = () => {
     ).length,
     resolvido: bugs?.filter((bug) => bug.status === StatusDefeito.RESOLVIDO)
       .length,
-    alta: bugs?.filter((bug) => bug.severity === "ALTA").length,
+    alta: bugs?.filter((bug) => bug.defectPriority === "ALTA").length,
   };
 
   const chartConfig = {
@@ -399,7 +399,7 @@ const BugReport = () => {
               Distribuição dos defeitos por categoria
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          {/* <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData}>
@@ -411,7 +411,7 @@ const BugReport = () => {
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent>
+          </CardContent> */}
         </Card>
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
 } from "@/app/components/atoms/CardComponent";
 import { Button } from "../atoms";
 import { BugService } from "@/app/services/bugService";
-import { Bug } from "@/app/models/Bug";
 import { useEffect, useState } from "react";
 import {
   Bug as BugIcon,
@@ -19,7 +18,7 @@ import {
   Tag,
   Plus,
   Eye,
-  ArrowRight,
+  ArrowRight, 
 } from "lucide-react";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { UtilService } from "@/app/services/utilService";
@@ -28,22 +27,19 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import { UserBug } from "@/app/models/UserBug";
 
 const DashboardBugView = () => {
-  const [bugs, setBugs] = useState<Bug[]>([]);
+  const [bugs, setBugs] = useState<UserBug[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const loggedUser = useAtomValue(userAtom);
 
   const router = useRouter();
 
   useEffect(() => {
     const fetchBugs = async () => {
       try {
-        let data: Bug[] = [];
-        if (loggedUser && loggedUser.id) {
-          data = BugService.getAllBugsByUser(loggedUser.id);
-        }
+        const data = await BugService.getAllBugsByUserAsync();
+        console.log(data);
         setBugs(data || []);
       } catch (error) {
         console.error("Erro ao carregar defeitos:", error);
@@ -171,10 +167,10 @@ const DashboardBugView = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <div
-                          className={`w-3 h-3 rounded-full ${getPriorityColor(bug.severity)}`}
+                          className={`w-3 h-3 rounded-full ${getPriorityColor(bug.defectPriority)}`}
                         ></div>
                         <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                          #{bug.summary}
+                          #{bug.description}
                         </h3>
                         <span
                           className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(bug.status)}`}
@@ -191,25 +187,25 @@ const DashboardBugView = () => {
                           <Calendar className="w-4 h-4" />
                           <span>
                             Criado:{" "}
-                            {new Date(bug.createdDate || "").toLocaleDateString(
+                            {new Date(bug.createdAt || "").toLocaleDateString(
                               "pt-BR"
                             )}
                           </span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Tag className="w-4 h-4" />
-                          <span>{bug.severity}</span>
+                          <span>{bug.defectPriority}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-2 text-sm">
-                        {isExpired(UtilService.formatDate(bug.expiredDate)) ? (
+                        {isExpired(UtilService.formatDate(bug.expirationDate)) ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                             <AlertTriangle className="w-3 h-3 mr-1" />
                             Expirado
                           </span>
                         ) : isExpiringSoon(
-                            UtilService.formatDate(bug.expiredDate)
+                            UtilService.formatDate(bug.expirationDate)
                           ) ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
                             <Clock className="w-3 h-3 mr-1" />
@@ -218,7 +214,7 @@ const DashboardBugView = () => {
                         ) : (
                           <span className="text-gray-500 dark:text-gray-400">
                             Expira em:{" "}
-                            {new Date(bug.expiredDate).toLocaleDateString(
+                            {new Date(bug.expirationDate).toLocaleDateString(
                               "pt-BR"
                             )}
                           </span>

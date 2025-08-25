@@ -7,19 +7,24 @@ import { useEffect, useState } from "react";
 import { Card } from "@/app/components/atoms";
 import { BugDataTable } from "@/app/components/molecules/BugDataTable";
 import { BugService } from "@/app/services/bugService";
-import { Bug } from "@/app/models/Bug";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
+import { UserBug } from "@/app/models/UserBug";
 
 const BugListTemplate = () => {
-  const [data, setData] = useState<Bug[]>([]);
+  const [data, setData] = useState<UserBug[]>([]);
 
   const loggedUser = useAtomValue(userAtom);
 
   useEffect(() => {
-    if (loggedUser && loggedUser.id) {
-      setData(BugService.getAllBugsByUser(loggedUser.id));
+
+    const fetchBugs = async () => {
+        const data = await BugService.getAllBugsByUserAsync()
+        setData(data);
     }
+
+    fetchBugs();
+
   }, [loggedUser]);
 
   return (
