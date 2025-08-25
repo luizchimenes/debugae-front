@@ -94,7 +94,7 @@ export const BugService = {
   },
 
   // updateBug: async (updatedBug: Bug): Promise<void> => {
-  //   const oldBug = BugService.getBugById(updatedBug.id);
+  //   const oldBug = BugService.getBugById(updatedBug.defectId);
   //   if (!oldBug) {
   //     console.warn(
   //       `Bug com ID ${updatedBug.defectId} não encontrado para atualização.`
