@@ -11,7 +11,7 @@ export interface UserProject {
   projectId: string;
   projectName: string;
   projectDescription: string;
-  totalContributors: number;
+  membersCount: number;
   userProjectRole: PapelContribuidor;
   colaborators: UserProjectContributors[];
 }
