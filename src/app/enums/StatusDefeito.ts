@@ -1,8 +1,8 @@
 export enum StatusDefeito {
-  NOVO = "Novo",
+  NOVO = "New",
   EM_RESOLUCAO = "Em resolução", 
-  AGUARDANDO_USUARIO = "Aguardando Usuário", 
-  REABERTO = "Reaberto", 
-  RESOLVIDO = "Resolvido", 
-  INVALIDO = "Inválido",
+  AGUARDANDO_USUARIO = "WaitingForUser", 
+  REABERTO = "Reopened", 
+  RESOLVIDO = "Resolved", 
+  INVALIDO = "Invalid",
 }

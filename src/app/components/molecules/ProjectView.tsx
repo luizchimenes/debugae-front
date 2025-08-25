@@ -9,46 +9,64 @@ import {
 } from "@/app/components/atoms/CardComponent";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
-import { User, UserService } from "@/app/services/userService";
-import { ProjectService, Project } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import {
   Bug,
   Users,
   Calendar,
-  BarChart3,
   CheckCircle,
   Clock,
   Search,
   Plus,
   Eye,
-  Edit,
   Tag,
   Settings,
-  Download,
   ArrowLeft,
+  User as UserIcon,
+  Check,
+  XCircle,
+  RefreshCw,
 } from "lucide-react";
-import { Bug as Bugs, BugService } from "@/app/services/bugService";
 import ProjectEditModal from "../organism/ProjectChangeModal";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/app/services/authService";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { toast } from "sonner";
+import User from "@/app/models/User";
+import { GetProjectDetailsResponse, GetProjectDetailsResponseDefect } from "@/app/models/responses/getProjectDetailsResponse";
+import { UpdateProjectResponse } from "@/app/models/responses/updateProjectResponse";
+import ManageProjectContributorsModal from "../organism/ManageProjectContributorsModal";
 
 interface ProjectViewProps {
   projectId: string;
 }
 
 const ProjectView = ({ projectId }: ProjectViewProps) => {
-  const [project, setProject] = useState<Project | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [bugs, setBugs] = useState<Bugs[]>([]);
+  const [project, setProject] = useState<GetProjectDetailsResponse | null>(null);
+  const [bugs, setBugs] = useState<GetProjectDetailsResponseDefect[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [showChangeModal, setShowChangeModal] = useState(false);
+  const [showContributorsModal, setShowContributorsModal] = useState(false);
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const [totalDefectsOpen, setTotalDefectsOpen] = useState(0);
+  const [totalClosed, setTotalClosed] = useState(0);
+  const [totalResolved, setTotalResolved] = useState(0);
+  const [totalInvalid, setTotalInvalid] = useState(0);
+  const [totalReopened, setTotalReopened] = useState(0);
+  const [totalWaitingForUser, setTotalWaitingForUser] = useState(0);
+
+
+  useEffect(() => {
+    const fetchLoggedUser = async () => {
+      const user = await AuthService.getLoggedUser();
+      setLoggedUser(user);
+    };
+    fetchLoggedUser();
+  }, []);
 
   const router = useRouter();
 
@@ -56,18 +74,17 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [projectData, userData, bugData] = await Promise.all([
-          ProjectService.getById(projectId),
-          UserService.getAll(),
-          BugService.getProjectById(projectId),
-        ]);
-
-        if (projectData) {
-          setProject(projectData);
-        }
-        setAllUsers(userData);
-        if (bugData) {
-          setBugs(bugData);
+        const projectDetails = await ProjectService.getProjectDetailsAsync(projectId);
+        
+        if (projectDetails) {
+          setProject(projectDetails);
+          setBugs(projectDetails.defects || []);
+          setTotalDefectsOpen(projectDetails.totalOpen);
+          setTotalClosed(projectDetails.totalClosed);
+          setTotalResolved(projectDetails.totalResolved);
+          setTotalInvalid(projectDetails.totalInvalid);
+          setTotalReopened(projectDetails.totalReopened);
+          setTotalWaitingForUser(projectDetails.totalWaitingForUser);
         }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
@@ -118,8 +135,18 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     setShowChangeModal(false);
   };
 
-  const handleProjectUpdated = (updatedProject: Project) => {
-    setProject(updatedProject);
+  const handleOpenManageContributorsModal = () => {
+    setShowContributorsModal(true);
+  };
+
+  const handleCloseManageContributorsModal = () => {
+    setShowContributorsModal(false);
+  };
+
+  const handleProjectUpdated = (updatedProject: UpdateProjectResponse) => {
+    if (!project) return;
+    project.projectName = updatedProject.projectName;
+    project.projectDescription = updatedProject.projectDescription;
   };
 
   const handleViewDefect = async (defectId: string) => {
@@ -143,7 +170,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     const matchesStatus =
       selectedStatus === "all" || bug.status === selectedStatus;
     const matchesPriority =
-      selectedPriority === "all" || bug.severity === selectedPriority;
+      selectedPriority === "all" || bug.defectPriority === selectedPriority;
 
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -151,12 +178,25 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
   const getDefectStats = () => {
     const total = bugs.length;
     const open = bugs.filter((d) => d.status === "open").length;
-    const inProgress = bugs.filter((d) => d.status === "in-progress").length;
+    const inProgress = bugs.filter((d) => d.status === "in Progress").length;
     const resolved = bugs.filter((d) => d.status === "resolved").length;
 
     return { total, open, inProgress, resolved };
   };
 
+  if (isLoading) {
+    return (
+      <>
+        {isLoading && (
+          <LoadingOverlay
+            title="Buscando projeto..."
+            subtitle="Buscando informações do projeto"
+            showDots={true}
+          />
+        )}
+      </>
+    );
+  }
 
   if (!project) {
     return (
@@ -175,37 +215,35 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     );
   }
 
-  const contributorNames = project.contributors.map((id) => {
-    const user = allUsers.find((u) => u.id === id);
-    return user ? `${user.firstName} ${user.lastName}` : "Desconhecido";
-  });
-
-  const stats = getDefectStats();
-
-  if (isLoading) {
-    return <LoadingOverlay />;
-  }
+  const isAdmin = () => {
+    return project.colaborators.some(
+      (colab) =>
+        colab.colaboratorId === loggedUser?.id &&
+        colab.colaboratorRole.toLowerCase() === "administrator"
+    );
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {project.name}
+            {project.projectName}
           </h1>
           <p className="text-gray-600 mt-1 dark:text-white">
-            Gerenciamento de defeitos do projeto
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          {/* <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
             Exportar
-          </Button> */}
-          {loggedUser.id == project.adminId && (
+          </p>
+          {loggedUser && isAdmin() && (
             <Button variant="outline" size="sm" onClick={handleOpenEditModal}>
               <Settings className="w-4 h-4 mr-2" />
               Configurações
+            </Button>
+          )}
+
+          {loggedUser && isAdmin() && (
+            <Button variant="outline" size="sm" onClick={handleOpenManageContributorsModal}>
+              <UserIcon className="w-4 h-4 mr-2" />
+              Gerenciar contribuidores
             </Button>
           )}
 
@@ -224,10 +262,10 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-2xl mb-2 dark:text-white">
-                {project.name}
+                {project.projectName}
               </CardTitle>
               <CardDescription className="text-base mb-4">
-                {project.description}
+                {project.projectDescription}
               </CardDescription>
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
@@ -242,7 +280,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span className="dark:text-white">
-                    {project.contributors.length} colaboradores
+                    {project.colaborators.length} colaboradores
                   </span>
                 </div>
               </div>
@@ -252,53 +290,37 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardDescription>Total de Defeitos</CardDescription>
-                <CardTitle className="text-2xl text-gray-900 dark:text-white">
-                  {stats.total}
-                </CardTitle>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardDescription>Abertos</CardDescription>
+                  <CardTitle className="text-2xl text-red-600 dark:text-red-400">
+                    {totalDefectsOpen}
+                  </CardTitle>
+                </div>
+                <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                  <Bug className="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
               </div>
-              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-300" />
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
+            </CardHeader>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardDescription>Abertos</CardDescription>
-                <CardTitle className="text-2xl text-red-600 dark:text-red-400">
-                  {stats.open}
-                </CardTitle>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardDescription>Em Progresso</CardDescription>
+                  <CardTitle className="text-2xl text-yellow-600 dark:text-yellow-400">
+                    {totalWaitingForUser}
+                  </CardTitle>
+                </div>
+                <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                  <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
               </div>
-              <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
-                <Bug className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardDescription>Em Progresso</CardDescription>
-                <CardTitle className="text-2xl text-yellow-600 dark:text-yellow-400">
-                  {stats.inProgress}
-                </CardTitle>
-              </div>
-              <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
+            </CardHeader>
+          </Card>
 
         <Card>
           <CardHeader className="pb-3">
@@ -306,7 +328,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
               <div>
                 <CardDescription>Resolvidos</CardDescription>
                 <CardTitle className="text-2xl text-green-600 dark:text-green-400">
-                  {stats.resolved}
+                  {totalResolved}
                 </CardTitle>
               </div>
               <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
@@ -315,13 +337,70 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
             </div>
           </CardHeader>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardDescription>Fechados</CardDescription>
+                <CardTitle className="text-2xl text-gray-600 dark:text-gray-400">
+                  {totalClosed}
+                </CardTitle>
+              </div>
+              <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded-lg">
+                <Check className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardDescription>Inválidos</CardDescription>
+                  <CardTitle className="text-2xl text-purple-600 dark:text-purple-400">
+                    {totalInvalid}
+                  </CardTitle>
+                </div>
+                <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <XCircle className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardDescription>Reabertos</CardDescription>
+                  <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
+                    {totalReopened}
+                  </CardTitle>
+                </div>
+                <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <RefreshCw className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
       </div>
 
       <ProjectEditModal
         show={showChangeModal}
         onClose={handleCloseEditModal}
-        project={project}
+        project={{id: project.projectId, name: project.projectName, description: project.projectDescription, contributors: project.colaborators.map(c => c.colaboratorId), createdAt: new Date( project.createdAt)}}
         onProjectUpdated={handleProjectUpdated}
+      />
+
+      <ManageProjectContributorsModal
+        show={showContributorsModal}
+        onClose={handleCloseManageContributorsModal}
+        currentContributors={project.colaborators.map(c => c.colaboratorEmail)}
+        projectId={project.projectId}
       />
 
       <Card>
@@ -331,16 +410,16 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
             Colaboradores do Projeto
           </CardTitle>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-            {contributorNames.map((name, index) => (
+            {project.colaborators.map((colaborador) => (
               <div
-                key={index}
+                key={colaborador.colaboratorId}
                 className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
               >
                 <div className="w-8 h-8 bg-purple-400 dark:bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  {name.charAt(0)}
+                  {colaborador.colaboratorName.charAt(0).toUpperCase()}
                 </div>
                 <span className="font-medium text-gray-800 dark:text-gray-100 truncate">
-                  {name}
+                  {colaborador.colaboratorName}
                 </span>
               </div>
             ))}
@@ -386,9 +465,11 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">Todos os Status</option>
-                <option value="Novo">Abertos</option>
-                <option value="in-progress">Em Progresso</option>
-                <option value="resolved">Resolvidos</option>
+                <option value="Resolved">Resolvidos</option>
+                <option value="Invalid">Inválidos</option>
+                <option value="Reopened">Reabertos</option>
+                <option value="WaitingForUser">Aguardando usuário</option>
+                <option value="New">Novos</option>
               </select>
               <select
                 value={selectedPriority}
@@ -396,10 +477,11 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">Todas as Prioridades</option>
-                <option value="critical">Crítica</option>
-                <option value="high">Alta</option>
-                <option value="medium">Média</option>
-                <option value="low">Baixa</option>
+                <option value="P1">{"Muito alta (P1)"}</option>
+                <option value="P2">{"Alta (P2)"}</option>
+                <option value="P3">{"Média (P3)"}</option>
+                <option value="P4">{"Baixa (P4)"}</option>
+                <option value="P5">{"Muito baixa (P5)"}</option>
               </select>
             </div>
           </div>
@@ -432,7 +514,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
                           <div
-                            className={`w-3 h-3 rounded-full ${getPriorityColor(bug.severity)}`}
+                            className={`w-3 h-3 rounded-full ${getPriorityColor(bug.defectPriority)}`}
                           ></div>
                           <h3 className="font-semibold text-gray-800 truncate dark:text-white">
                             #{bug.id} - {bug.summary}
@@ -455,14 +537,14 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                             <span className="dark:text-white">
                               Criado:{" "}
                               {new Date(
-                                bug.createdDate || ""
+                                bug.createdAt || ""
                               ).toLocaleDateString("pt-BR")}
                             </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Tag className="w-4 h-4" />
                             <span className="dark:text-white">
-                              Prioridade: {bug.severity}
+                              Prioridade: {bug.defectPriority}
                             </span>
                           </div>
                         </div>

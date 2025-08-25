@@ -32,7 +32,6 @@ import {
   Search,
   Filter,
   Bug,
-  Settings2,
   Eye,
   X,
 } from "lucide-react";
@@ -60,14 +59,6 @@ const severityOptions = [
   { value: "media", label: "Média" },
   { value: "alta", label: "Alta" },
   { value: "critica", label: "Crítica" },
-];
-
-const categoryOptions = [
-  { value: "funcional", label: "Funcional" },
-  { value: "interface", label: "Interface" },
-  { value: "performance", label: "Performance" },
-  { value: "seguranca", label: "Segurança" },
-  { value: "usabilidade", label: "Usabilidade" },
 ];
 
 export function BugDataTable<TData, TValue>({
@@ -228,7 +219,7 @@ export function BugDataTable<TData, TValue>({
                   Prioridade
                 </label>
                 <select
-                  value={getFilterValue("severity")}
+                  value={getFilterValue("defectPriority")}
                   onChange={(e) => setFilterValue("severity", e.target.value)}
                   className="w-full h-10 px-3 border border-gray-300 dark:border-gray-600 rounded-md focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >

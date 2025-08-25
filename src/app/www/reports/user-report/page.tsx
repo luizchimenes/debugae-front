@@ -1,12 +1,9 @@
-import BugReportTemplate from "@/app/components/templates/report/BugReportTemplate";
-import ProtectedRoute from "@/app/utils/ProtectedRoute";
+import React from 'react'
 
-const ProjectCreatePage = () => {
+const page = () => {
   return (
-    <ProtectedRoute>
-      <BugReportTemplate />;
-    </ProtectedRoute>
-  );
-};
+    <div>page</div>
+  )
+}
 
-export default ProjectCreatePage;
+export default page

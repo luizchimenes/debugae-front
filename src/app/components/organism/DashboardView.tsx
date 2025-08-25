@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle } from "../atoms";
+import { Card, CardHeader } from "../atoms";
 import { CardDescription } from "../atoms/CardComponent";
 import DashboardBugView from "../molecules/DashboardBugView";
 import DashboardProjectView from "../molecules/DashboardProjectView";

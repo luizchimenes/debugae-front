@@ -1,13 +1,14 @@
 import { v4 as uuidv4 } from "uuid";
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  contributors: string[];
-  adminId: string;
-  createdAt: Date;
-}
+import { Project } from "../models/Project";
+import CreateProjectRequest from "../models/requests/createProjectRequest";
+import api from "../config/axiosConfig";
+import { PaginatedRequest } from "../models/requests/paginatedRequest";
+import { GetCurrentUsersProject } from "../models/responses/getCurrentUserProjectsResponse";
+import { UserProject } from "../models/UserProject";
+import { GetProjectDetailsResponse } from "../models/responses/getProjectDetailsResponse";
+import { UpdateProjectRequest } from "../models/requests/updateProjectRequest";
+import { UpdateProjectResponse } from "../models/responses/updateProjectResponse";
+import { ManageContributorsRequest } from "../models/requests/manageContributorsRequest";
 
 const PROJECTS_KEY = "projects";
 
@@ -18,11 +19,14 @@ export const ProjectService = {
     return projectsJson ? JSON.parse(projectsJson) : [];
   },
 
-  saveProject: (project: Omit<Project, "id" | "createdAt">) => {
-    const newProject: Project = { ...project, id: uuidv4(), createdAt: new Date() };
-    const projects = ProjectService.getAllProjects();
-    projects.push(newProject);
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  saveProjectAsync: async (project: CreateProjectRequest): Promise<void> => {
+    const response = await api.post("/projects/create", project);
+    if (response.status === 400) {
+      throw new Error(response.data.message);
+    }
+    if (response.status !== 201) {
+      throw new Error("Erro interno ao salvar projeto, contacte o administrador.");
+    }
   },
 
   deleteProject: (id: string) => {
@@ -39,14 +43,34 @@ export const ProjectService = {
     return project;
   },
 
-  getAllProjectsByUser: (id: string): Project[] => {
-    if (typeof window === "undefined") return [];
+  getProjectDetailsAsync: async (projectId: string): Promise<GetProjectDetailsResponse> => {
+    const projectDetailsResponse = await api.get(`projects/projectDetails?projectId=${projectId}`);
 
-    const projects = ProjectService.getAllProjects();
+    if (projectDetailsResponse.status !== 200) {
+      throw new Error(projectDetailsResponse.data.message);
+    }
 
-    return projects.filter(
-      (project) => project.adminId === id || project.contributors.includes(id)
-    );
+    return projectDetailsResponse.data as GetProjectDetailsResponse;
+  },
+
+  getAllProjectsByUserAsync: async (paginatedRequest: PaginatedRequest): Promise<GetCurrentUsersProject> => {
+    const response = await api.get(`/projects/getCurrentUserProjects?page=${paginatedRequest.page}&pageSize=${paginatedRequest.pageSize}`);
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+    
+    return response.data.data as GetCurrentUsersProject;
+  },
+
+  getAllProjectByUserAsync: async() : Promise<UserProject[]> => {
+    const response = await api.get("/projects/getAllProjectsFromUser");
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data.data as UserProject[];
   },
 
   updateProjectContributors: async (
@@ -55,7 +79,7 @@ export const ProjectService = {
   ): Promise<void> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        let projects: Project[] = ProjectService.getAllProjects();
+        const projects: Project[] = ProjectService.getAllProjects();
         const projectIndex = projects.findIndex(
           (p: Project) => p.id === projectId
         );
@@ -76,25 +100,19 @@ export const ProjectService = {
     });
   },
 
-  updateProject: async (updatedProjectData: Project): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        let projects: Project[] = ProjectService.getAllProjects();
-        const projectIndex = projects.findIndex(
-          (p: Project) => p.id === updatedProjectData.id
-        );
+  updateProject: async (updatedProjectData: UpdateProjectRequest): Promise<UpdateProjectResponse> => {
+    const response = await api.patch("/projects/updateProject", updatedProjectData);
 
-        if (projectIndex !== -1) {
-          projects[projectIndex] = {
-            ...updatedProjectData,
-            createdAt: projects[projectIndex].createdAt
-          };
-          localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
-          resolve();
-        } else {
-          reject(new Error("Projeto não encontrado para atualização."));
-        }
-      }, 500); 
-    });
+    return response.data;
   },
+
+  manageContributorsAsync: async (manageContributorsRequest: ManageContributorsRequest): Promise<ManageContributorsRequest> => {
+    const response = await api.post("/projects/manageContributors", manageContributorsRequest);
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data as ManageContributorsRequest;
+  }
 };

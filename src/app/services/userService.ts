@@ -1,16 +1,5 @@
-// services/UserService.ts
 import { v4 as uuidv4 } from "uuid";
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  userName: string;
-  email: string;
-  password: string;
-  department: string;
-  position: string;
-}
+import User from "../models/User";
 
 const LOCAL_STORAGE_KEY = "users";
 

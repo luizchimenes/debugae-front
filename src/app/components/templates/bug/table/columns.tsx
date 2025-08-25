@@ -9,29 +9,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/app/components/atoms/DropdownMenuComponent";
-import { Project, ProjectService } from "@/app/services/projectService";
-import { User, UserService } from "@/app/services/userService";
+import { Project } from "@/app/models/Project";
+import { UserBug } from "@/app/models/UserBug";
+import { ProjectService } from "@/app/services/projectService";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export type Bug = {
-  id: string;
-  projectId: string;
-  summary: string;
-  description: string;
-  environment: string;
-  severity: string;
-  version: string;
-  category: string;
-  currentBehavior: string;
-  expectedBehavior: string;
-  stackTrace: string;
-  attachment?: string; // base64 ou URL
-  createdBy: string; // id do usuário/admin
-};
 
-export const columns: ColumnDef<Bug>[] = [
+export const columns: ColumnDef<UserBug>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -93,17 +79,17 @@ export const columns: ColumnDef<Bug>[] = [
     },
   },
   {
-    accessorKey: "severity",
+    accessorKey: "defectPriority",
     header: "Prioridade",
     cell: ({ row }) => {
-      return <div className="capitalize">{row.getValue("severity")}</div>;
+      return <div className="capitalize">{row.getValue("defectPriority")}</div>;
     },
   },
   {
-    accessorKey: "expiredDate",
+    accessorKey: "expirationDate",
     header: "Validade",
     cell: ({ row }) => {
-      const value = row.getValue("expiredDate") as string;
+      const value = row.getValue("expirationDate") as string;
       const formatted = value
         ? new Date(value).toLocaleDateString("pt-BR")
         : "";
@@ -113,7 +99,7 @@ export const columns: ColumnDef<Bug>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

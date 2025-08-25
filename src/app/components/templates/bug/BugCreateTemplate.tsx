@@ -1,5 +1,4 @@
-import { Card, CardHeader, CardTitle } from "../../atoms";
-import { CardDescription } from "../../atoms/CardComponent";
+import { Card } from "../../atoms";
 import BugCreateForm from "../../molecules/BugCreateForm";
 import { ThemeToggle } from "../../molecules/ThemeToggle";
 import DashboardHeader from "../../organism/DashboardHeader";

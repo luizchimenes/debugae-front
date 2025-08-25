@@ -32,15 +32,18 @@ import { DropdownMenuCheckboxItem } from "../atoms/DropdownMenuComponent";
 import { useRouter } from "next/navigation";
 import { LoadingOverlay } from "../atoms/LoadingPage";
 import { toast } from "sonner";
+import { ProjectService } from "@/app/services/projectService";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  dataTotalPages?: number;
 }
 
 export function ProjectDataTable<TData, TValue>({
   columns,
   data,
+  dataTotalPages,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -52,9 +55,44 @@ export function ProjectDataTable<TData, TValue>({
   const [globalFilter, setGlobalFilter] = React.useState("");
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [tableData, setTableData] = React.useState(data);
+  const [totalPages, setTotalPages] = React.useState(dataTotalPages);
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const fetchProjects = async (pageIndex: number, pageSize: number) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await ProjectService.getAllProjectsByUserAsync({ 
+        page: pageIndex + 1, 
+        pageSize: pageSize 
+      });
+      
+      setTableData(response.items as TData[]);
+      setTotalPages(Math.ceil(response.totalCount / response.pageSize));
+      
+      setPagination(prev => ({
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+      }));
+    } catch (error) {
+      toast.error("Erro ao carregar projetos", {
+        description: "Ocorreu um problema ao buscar os projetos. Tente novamente.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchProjects(0, 10);
+  }, []);
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -66,12 +104,23 @@ export function ProjectDataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
+    pageCount: totalPages,
+    manualPagination: true,
     state: {
+      pagination,
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+    },
+    onPaginationChange: (updater) => {
+      const newPagination = typeof updater === 'function' ? updater(pagination) : updater;
+
+      if (newPagination.pageIndex !== pagination.pageIndex || 
+          newPagination.pageSize !== pagination.pageSize) {
+        fetchProjects(newPagination.pageIndex, newPagination.pageSize);
+      }
     },
   });
 
@@ -81,7 +130,6 @@ export function ProjectDataTable<TData, TValue>({
       await new Promise((resolve) => setTimeout(resolve, 50));
       router.push(path);
     } catch (err) {
-      console.error("Erro ao redirecionar:", err);
       toast.error("Erro ao redirecionar", {
         description: "Ocorreu um problema ao navegar. Tente novamente.",
       });
@@ -164,9 +212,9 @@ export function ProjectDataTable<TData, TValue>({
                 </label>
                 <Input
                   placeholder="Filtrar por nome..."
-                  value={getFilterValue("name")}
+                  value={getFilterValue("projectName")}
                   onChange={(event) =>
-                    setFilterValue("name", event.target.value)
+                    setFilterValue("projectName", event.target.value)
                   }
                   className="h-10 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400"
                 />
@@ -178,9 +226,9 @@ export function ProjectDataTable<TData, TValue>({
                 </label>
                 <Input
                   placeholder="Filtrar por descrição..."
-                  value={getFilterValue("description")}
+                  value={getFilterValue("projectDescription")}
                   onChange={(event) =>
-                    setFilterValue("description", event.target.value)
+                    setFilterValue("projectDescription", event.target.value)
                   }
                   className="h-10 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400"
                 />
@@ -273,7 +321,7 @@ export function ProjectDataTable<TData, TValue>({
                     ${row.getIsSelected() ? "bg-purple-100 dark:bg-purple-900/30 border-l-4 border-l-purple-500 dark:border-l-purple-400" : ""}
                   `}
                     onClick={() => {
-                      const projectId = (row.original as { id: string }).id;
+                      const projectId = (row.original as { projectId: string }).projectId;
                       handleRedirect(`/www/project/view/${projectId}`);
                     }}
                   >

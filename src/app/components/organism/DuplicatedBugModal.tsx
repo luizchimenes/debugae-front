@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import { X, AlertTriangle, Calendar, Tag } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { X, AlertTriangle, Calendar, Tag, Plus, Eye, Minus } from "lucide-react";
 import { Button } from "../atoms";
 import { UtilService } from "@/app/services/utilService";
 import { useRouter } from "next/navigation";
+import { DefectDuplicatesViewModel } from "@/app/models/responses/getDefectDuplicatedResponse";
 
-interface Bug {
+export interface DuplicatedBug {
   id: string;
   projectId: string;
   summary: string;
@@ -25,8 +26,11 @@ interface SimilarBugsModalProps {
   show: boolean;
   onClose: () => void;
   onContinue: () => void;
-  similarBugs: Bug[];
+  similarBugs: DefectDuplicatesViewModel[];
   getStatusColor: (status: string) => string;
+  onAddDuplicatedBug: (defectId: string) => void;
+  onRemoveDuplicatedBug: (defectId: string) => void;
+  duplicatedIds: string[];
 }
 
 const getSeverityColor = (severity: string): string => {
@@ -54,85 +58,139 @@ const getSeverityLabel = (severity: string): string => {
   return labelMap[severity] || severity;
 };
 
-const BugItem = React.memo(
-  ({
-    bug,
-    onBugClick,
-    getStatusColor,
-  }: {
-    bug: Bug;
-    onBugClick: (id: string) => void;
-    getStatusColor: (status: string) => string;
-  }) => {
-    const handleClick = useCallback(() => {
-      onBugClick(bug.id);
-    }, [bug.id, onBugClick]);
+interface BugItemProps {
+  bug: DefectDuplicatesViewModel;
+  onBugClick: (id: string) => void;
+  getStatusColor: (status: string) => string;
+  onAddDuplicatedBug: (defectId: string) => void;
+  onRemoveDuplicatedBug: (defectId: string) => void;
+  duplicatedIds: string[];
+}
 
-    const formattedDate = useMemo(() => {
-      return UtilService.formatDate(bug.createdDate);
-    }, [bug.createdDate]);
+const BugItem: React.FC<BugItemProps> = ({
+  bug,
+  onBugClick,
+  getStatusColor,
+  onAddDuplicatedBug,
+  onRemoveDuplicatedBug,
+  duplicatedIds,
+}) => {
+  const [isDuplicated, setIsDuplicated] = useState(false);
+  const router = useRouter();
 
-    return (
-      <div
-        onClick={handleClick}
-        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 
-                 cursor-pointer transition-all duration-200 
-                 hover:bg-gray-100 dark:hover:bg-gray-600/50 
-                 hover:border-gray-300 dark:hover:border-gray-600
-                 active:scale-[0.98]"
-      >
-        <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h4
-                className="font-medium text-gray-900 dark:text-white mb-1 
-                           group-hover:text-primary transition-colors duration-200"
-              >
-                {bug.summary}
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                {bug.description}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-2 ml-4">
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${getStatusColor(bug.status)}`}
-              >
-                {bug.status}
-              </span>
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${getSeverityColor(bug.severity)}`}
-              >
-                {getSeverityLabel(bug.severity)}
-              </span>
-            </div>
+  useEffect(() => {
+    setIsDuplicated(duplicatedIds.includes(bug.defectId));
+  }, [duplicatedIds, bug.defectId]);
+
+  const handleClick = useCallback(() => {
+    onBugClick(bug.defectId);
+  }, [bug.defectId, onBugClick]);
+
+  const handleAddDuplicated = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      onAddDuplicatedBug(bug.defectId);
+      setIsDuplicated(true);
+    },
+    [bug.defectId, onAddDuplicatedBug]
+  );
+
+  const handleRemoveDuplicated = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      onRemoveDuplicatedBug(bug.defectId);
+      setIsDuplicated(false);
+    },
+    [bug.defectId, onRemoveDuplicatedBug]
+  );
+
+  const formattedDate = useMemo(() => {
+    return UtilService.formatDate(bug.createdAt);
+  }, [bug.createdAt]);
+
+  return (
+    <div
+      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 
+               cursor-pointer transition-all duration-200 
+               hover:bg-gray-100 dark:hover:bg-gray-600/50 
+               hover:border-gray-300 dark:hover:border-gray-600
+               active:scale-[0.98]"
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-1 group-hover:text-primary transition-colors duration-200">
+              {bug.summary}
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+              {bug.description}
+            </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>{formattedDate}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Tag className="w-3 h-3" />
-              <span>{bug.category}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <span>{bug.environment}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-              <span>v{bug.version}</span>
+          <div className="flex flex-col items-end gap-2 ml-4">
+            <div className="flex items-center gap-2">
+              <a
+                href={`/www/bugs/view/${bug.defectId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white 
+                         transition-all duration-200 hover:scale-110 active:scale-95
+                         shadow-sm hover:shadow-md z-10 relative"
+                title="Ver detalhes"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Eye className="w-3 h-3" />
+              </a>
+              {isDuplicated ? (
+                <button
+                  onClick={handleRemoveDuplicated}
+                  type="button"
+                  className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white 
+                           transition-all duration-200 hover:scale-110 active:scale-95
+                           shadow-sm hover:shadow-md z-10 relative"
+                  title="Remover da lista de duplicados"
+                >
+                  <Minus className="w-3 h-3" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleAddDuplicated}
+                  type="button"
+                  className="p-1 rounded-full bg-blue-500 hover:bg-blue-600 text-white 
+                           transition-all duration-200 hover:scale-110 active:scale-95
+                           shadow-sm hover:shadow-md z-10 relative"
+                  title="Adicionar como duplicado"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              )}
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-);
 
-BugItem.displayName = "BugItem";
+        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            <span>{formattedDate}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Tag className="w-3 h-3" />
+            <span>{bug.category}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>{bug.environment}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span>v{bug.version}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const DuplicatedBugModal: React.FC<SimilarBugsModalProps> = ({
   show,
@@ -140,10 +198,12 @@ const DuplicatedBugModal: React.FC<SimilarBugsModalProps> = ({
   onContinue,
   similarBugs,
   getStatusColor,
+  onAddDuplicatedBug,
+  onRemoveDuplicatedBug,
+  duplicatedIds,
 }) => {
   const router = useRouter();
 
-  // Memoizar callback para navegação
   const handleBugClick = useCallback(
     (bugId: string) => {
       router.push(`/www/bugs/view/${bugId}`);
@@ -151,7 +211,7 @@ const DuplicatedBugModal: React.FC<SimilarBugsModalProps> = ({
     [router]
   );
 
-  const bugCount = useMemo(() => similarBugs.length, [similarBugs.length]);
+  const bugCount = useMemo(() => similarBugs.length, [similarBugs]);
 
   if (!show) return null;
 
@@ -168,8 +228,8 @@ const DuplicatedBugModal: React.FC<SimilarBugsModalProps> = ({
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 
-                       transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 
-                       rounded-full p-1"
+                     transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 
+                     rounded-full p-1"
           >
             <X className="w-5 h-5" />
           </button>
@@ -186,10 +246,13 @@ const DuplicatedBugModal: React.FC<SimilarBugsModalProps> = ({
         <div className="flex-1 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
           {similarBugs.map((bug) => (
             <BugItem
-              key={bug.id}
+              key={bug.defectId}
               bug={bug}
               onBugClick={handleBugClick}
               getStatusColor={getStatusColor}
+              onAddDuplicatedBug={onAddDuplicatedBug}
+              onRemoveDuplicatedBug={onRemoveDuplicatedBug}
+              duplicatedIds={duplicatedIds}
             />
           ))}
         </div>
@@ -198,10 +261,10 @@ const DuplicatedBugModal: React.FC<SimilarBugsModalProps> = ({
           <Button
             onClick={onContinue}
             className="flex-1 bg-primary hover:bg-primary-dark text-white 
-                       transition-all duration-200 hover:shadow-lg hover:scale-105 
-                       active:scale-95"
+                     transition-all duration-200 hover:shadow-lg hover:scale-105 
+                     active:scale-95"
           >
-            Continuar Mesmo Assim
+            Continuar
           </Button>
         </div>
       </div>

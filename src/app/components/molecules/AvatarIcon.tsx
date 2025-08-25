@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../atoms/AvatarComponent";
 import { AuthService } from "@/app/services/authService";
 import {
@@ -9,18 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../atoms/DropdownMenuComponent";
+import { useAtom } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
+import React from "react";
+import { LoadingOverlay } from "../atoms/LoadingPage";
 
 const AvatarIcon = () => {
-  const [user, setUser] = useState<{
-    firstName: string;
-    lastName: string;
-    position?: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const loggedUser = AuthService.getLoggedUser();
-    setUser(loggedUser);
-  }, []);
+  const [user, setUser] = useAtom(userAtom);
+  const [loading, setLoading] = React.useState(false);
 
   const getInitials = () => {
     if (!user) return "??";
@@ -29,10 +24,17 @@ const AvatarIcon = () => {
     ).toUpperCase();
   };
 
-  const handleLogout = () => {
-    AuthService.logout();
+  const handleLogout = async () => {
+    setLoading(true);
+    await AuthService.logout();
+    setUser(null);
+    setLoading(false);
     window.location.href = "/www/login";
   };
+
+  if (loading) {
+    return <LoadingOverlay />;
+  }
 
   return (
     <DropdownMenu>

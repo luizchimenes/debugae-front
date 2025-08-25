@@ -1,29 +1,10 @@
 "use client";
 
-import { Button } from "@/app/components/atoms";
 import { Checkbox } from "@/app/components/atoms/CheckboxComponent";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/app/components/atoms/DropdownMenuComponent";
-import { AuthService } from "@/app/services/authService";
-import { User, UserService } from "@/app/services/userService";
+import { UserProject } from "@/app/models/UserProject";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
 
-export type Project = {
-  id: string;
-  name: string;
-  description: string;
-  contributors: string[];
-  adminId: string;
-};
-
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<UserProject>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -47,68 +28,29 @@ export const columns: ColumnDef<Project>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "projectName",
     header: "Nome",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div className="capitalize">{row.getValue("projectName")}</div>,
   },
   {
-    accessorKey: "description",
+    accessorKey: "projectDescription",
     header: "Descrição",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("description")}</div>
+      <div className="capitalize">{row.getValue("projectDescription")}</div>
     ),
   },
   {
-    accessorKey: "contributors",
+    accessorKey: "membersCount",
     header: "Membros",
-    cell: ({ row }) => {
-      const contributorIds = row.getValue("contributors") as string[];
-      const [contributors, setContributors] = useState<User[]>([]);
-
-      useEffect(() => {
-        if (contributorIds && contributorIds.length > 0) {
-          const contributors = UserService.getByListIds(contributorIds);
-          setContributors(contributors);
-        }
-      }, [contributorIds]);
-
-      return (
-        <div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-8 h-8 p-0 rounded-full text-xs border-primary"
-                title="Ver Contribuidores"
-              >
-                {contributors.length}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {contributors.map((user) => (
-                <DropdownMenuItem key={user.id}>
-                  {user.firstName} {user.lastName}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("membersCount")}</div>
+    ),
   },
   {
-    accessorKey: "adminId",
+    accessorKey: "userProjectRole",
     header: "Situação",
-    cell: ({ row }) => {
-      const loggedUser = AuthService.getLoggedUser()
-
-
-      return (
-        <div>
-          {row.getValue("adminId") === loggedUser.id ? "Administrador" : "Membro"}
-        </div>
-      );
-    },
-  }
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("userProjectRole") == "Administrator" ? "Administrador" : "Contribuidor"}</div>
+    ),
+  },
 ];

@@ -3,36 +3,21 @@ import { DefeitoHistoricoService } from "./logService";
 import { AuthService } from "./authService";
 import { AcaoRealizada } from "../enums/AcaoRealizada";
 import { StatusDefeito } from "../enums/StatusDefeito";
-
-export interface Bug {
-  id: string;
-  projectId: string;
-  summary: string;
-  description: string;
-  environment: string;
-  severity: string;
-  version: string;
-  category: string;
-  currentBehavior: string;
-  expectedBehavior: string;
-  stackTrace: string;
-  status: string;
-  attachment?: string;
-  createdDate: Date;
-  expiredDate: Date;
-  closedDate?: Date;
-  updatedDate?: Date;
-  createdBy: string;
-  contributorId: string;
-}
+import { Bug, BugOld } from "../models/Bug";
+import FindDuplicatedDefectRequest from "../models/requests/findDuplicatesDefectsRequest";
+import api from "../config/axiosConfig";
+import { FindDefectDuplicatesResponse } from "../models/responses/getDefectDuplicatedResponse";
+import { CreateDefectResponse } from "../models/responses/createDefectResponse";
+import { UserBug } from "../models/UserBug";
+import User from "../models/User";
 
 const BUGS_KEY = "bugs";
 
 export const BugService = {
-  getAllBugs: (): Bug[] => {
+  getAllBugs: (): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = localStorage.getItem(BUGS_KEY);
-    const bugs: Bug[] = bugsJson ? JSON.parse(bugsJson) : [];
+    const bugs: BugOld[] = bugsJson ? JSON.parse(bugsJson) : [];
     return bugs.map((bug) => ({
       ...bug,
       createdDate: new Date(bug.createdDate),
@@ -40,7 +25,7 @@ export const BugService = {
     }));
   },
 
-  getAllBugsByUser: (id: string): Bug[] => {
+  getAllBugsByUser: (id: string): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = BugService.getAllBugs().filter(
       (bug) => bug.contributorId === id
@@ -48,7 +33,17 @@ export const BugService = {
     return bugsJson || [];
   },
 
-  getAllBugsByProject: (id: string): Bug[] => {
+  getAllBugsByUserAsync: async() : Promise<UserBug[]> => {
+    const response = await api.get("/defects/getAllDefectsFromUser");
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data.data as UserBug[];
+  },
+
+  getAllBugsByProject: (id: string): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = BugService.getAllBugs().filter(
       (bug) => bug.projectId === id
@@ -56,13 +51,13 @@ export const BugService = {
     return bugsJson || [];
   },
 
-  saveBug: (bug: Omit<Bug, "id">): Bug => {
-    const newBug: Bug = { ...bug, id: uuidv4() };
+  saveBug: async (bug: Omit<BugOld, "id">): Promise<BugOld> => {
+    const newBug: BugOld = { ...bug, id: uuidv4() };
     const bugs = BugService.getAllBugs();
     bugs.push(newBug);
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
 
-    const currentUser = AuthService.getLoggedUser();
+    const currentUser = await AuthService.getLoggedUser();
     if (currentUser) {
       DefeitoHistoricoService.salvarHistorico(
         newBug.id,
@@ -79,13 +74,13 @@ export const BugService = {
     return newBug;
   },
 
-  deleteBug: (id: string): void => {
+  deleteBug: async (id: string): Promise<void> => {
     const bugToDelete = BugService.getBugById(id);
     const bugs = BugService.getAllBugs().filter((bug) => bug.id !== id);
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
 
     if (bugToDelete) {
-      const currentUser = AuthService.getLoggedUser();
+      const currentUser = await AuthService.getLoggedUser();
       if (currentUser) {
         DefeitoHistoricoService.salvarHistorico(
           bugToDelete.id,
@@ -98,17 +93,17 @@ export const BugService = {
     }
   },
 
-  updateBug: (updatedBug: Bug): void => {
+  updateBug: async (updatedBug: Bug): Promise<void> => {
     const oldBug = BugService.getBugById(updatedBug.id);
     if (!oldBug) {
       console.warn(
-        `Bug com ID ${updatedBug.id} não encontrado para atualização.`
+        `Bug com ID ${updatedBug.defectId} não encontrado para atualização.`
       );
       return;
     }
     updatedBug.updatedDate = new Date();
 
-    const currentUser = AuthService.getLoggedUser();
+    const currentUser = await AuthService.getLoggedUser();
     if (!currentUser) {
       console.warn(
         "Nenhum usuário logado. Não é possível registrar histórico."
@@ -153,11 +148,36 @@ export const BugService = {
     localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
   },
 
-  getBugById: (id: string): Bug | undefined => {
+  getBugById: (id: string): BugOld | undefined => {
     return BugService.getAllBugs().find((bug) => bug.id === id);
   },
 
-  getProjectById: (id: string): Bug[] => {
-    return BugService.getAllBugs().filter((bug) => bug.projectId === id);
+  getBugByIdAsync: async (id: string): Promise<Bug> => {
+    const response = await api.get(`/defects/defectDetails?defectId=${id}`);
+
+    console.log(response)
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    return response.data.defectData as Bug;
   },
+
+
+  getDefectDuplicatesAsync: async (request: FindDuplicatedDefectRequest): Promise<FindDefectDuplicatesResponse> => {
+    const response = await api.post('/defects/findDuplicates', request);
+
+    return response.data as FindDefectDuplicatesResponse;
+  },
+
+  createDefectAsync: async (formData: FormData): Promise<CreateDefectResponse> => {
+    const response = await api.post('/defects/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    return response.data as CreateDefectResponse;
+  } 
 };

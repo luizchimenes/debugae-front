@@ -7,14 +7,11 @@ import {
   CardDescription,
 } from "@/app/components/atoms/CardComponent";
 import { Button } from "../atoms";
-import { AuthService } from "@/app/services/authService";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { ProjectService } from "@/app/services/projectService";
 import { useEffect, useState } from "react";
 import {
   FolderOpen,
   Users,
-  Calendar,
-  Crown,
   User,
   Plus,
   Eye,
@@ -24,18 +21,25 @@ import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LoadingOverlay } from "../atoms/LoadingPage";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
+import { UserProject } from "@/app/models/UserProject";
 
 const DashboardProjectView = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<UserProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loggedUser = AuthService.getLoggedUser();
+  const loggedUser = useAtomValue(userAtom);
   const router = useRouter();
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const data = ProjectService.getAllProjectsByUser(loggedUser.id);
+        if (!loggedUser || !loggedUser.id) {
+          setProjects([]);
+          return;
+        }
+        const data = await ProjectService.getAllProjectByUserAsync();
         setProjects(data || []);
       } catch (error) {
         console.error("Erro ao carregar projetos:", error);
@@ -100,7 +104,7 @@ const DashboardProjectView = () => {
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Você ainda não participa de nenhum projeto
               </p>
-              <Button>
+              <Button onClick={() => handleRedirect("/www/project/create")}>
                 <Plus className="w-4 h-4 mr-2" />
                 Criar Projeto
               </Button>
@@ -109,48 +113,33 @@ const DashboardProjectView = () => {
             <div className="space-y-4">
               {projects.map((project) => (
                 <div
-                  key={project.id}
+                  key={project.projectId}
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                          {project.name}
+                          {project.projectName}
                         </h3>
                         <div className="flex items-center space-x-1">
-                          {project.adminId === loggedUser.id ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                              <Crown className="w-3 h-3 mr-1" />
-                              Admin
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                               <User className="w-3 h-3 mr-1" />
-                              Membro
+                              {project.userProjectRole.toString() == "Administrator" ? "Administrador" : "Contribuidor"}
                             </span>
-                          )}
                         </div>
                       </div>
 
                       <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
-                        {project.description}
+                        {project.projectDescription}
                       </p>
 
                       <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>
-                            {new Date(
-                              project.createdAt || ""
-                            ).toLocaleDateString("pt-BR")}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1">
                           <Users className="w-4 h-4" />
                           <span>
-                            {project.contributors.length}{" "}
-                            {project.contributors.length === 1
+                            {project.totalContributors}{" "}
+                            {project.totalContributors === 1
                               ? "colaborador"
                               : "colaboradores"}
                           </span>
@@ -162,7 +151,7 @@ const DashboardProjectView = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRedirect("/www/project/view/" + project.id)}
+                        onClick={() => handleRedirect("/www/project/view/" + project.projectId)}
                         className="hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         <Eye className="w-4 h-4" />

@@ -1,10 +1,6 @@
-interface Bug {
-  id: string;
-  projectId: string;
-  summary: string;
-  description: string;
-  status: string;
-}
+import { DuplicatedBug } from "../components/organism/DuplicatedBugModal";
+
+export type DuplicatedBugReduced = Pick<DuplicatedBug, "id" | "projectId" | "summary" | "description" | "status">;
 
 function calculateSimilarity(str1: string, str2: string): number {
   if (!str1 || !str2) return 0;
@@ -83,9 +79,9 @@ export function findSimilarBugs(
   currentSummary: string,
   currentDescription: string,
   currentProjectId: string,
-  existingBugs: Bug[],
+  existingBugs: DuplicatedBug[],
   similarityThreshold: number = 0.6
-): Bug[] {
+): DuplicatedBug[] {
   if (!currentSummary?.trim() && !currentDescription?.trim()) {
     return [];
   }
@@ -116,9 +112,9 @@ export function findDuplicateBugs(
   currentSummary: string,
   currentDescription: string,
   currentProjectId: string,
-  existingBugs: Bug[],
+  existingBugs: DuplicatedBug[],
   duplicateThreshold: number = 0.85
-): Bug[] {
+): DuplicatedBug[] {
   return findSimilarBugs(
     currentSummary,
     currentDescription,

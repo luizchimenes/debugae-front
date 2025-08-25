@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Input, Label } from "../atoms";
 import {
   Card,
@@ -18,23 +18,28 @@ import {
   SelectValue,
 } from "../atoms/SelectComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
-import { User, UserService } from "@/app/services/userService";
-import { AuthService } from "@/app/services/authService";
-import { Project, ProjectService } from "@/app/services/projectService";
+import { UserService } from "@/app/services/userService";
+import { ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
 import { BugService } from "@/app/services/bugService";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { AcaoRealizada } from "@/app/enums/AcaoRealizada";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { findSimilarBugs } from "@/app/services/duplicatedService";
-import DuplicatedBugModal from "../organism/DuplicatedBugModal";
+import DuplicatedBugModal, { DuplicatedBug } from "../organism/DuplicatedBugModal";
+import User from "@/app/models/User";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/app/stores/atoms/userAtom";
+import { Project } from "@/app/models/Project";
+import { UserProject, UserProjectContributors } from "@/app/models/UserProject";
+import FindDuplicatedDefectRequest from "@/app/models/requests/findDuplicatesDefectsRequest";
+import { DefectDuplicatesViewModel, FindDefectDuplicatesResponse } from "@/app/models/responses/getDefectDuplicatedResponse";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_SUMMARY_LENGTH = 100;
 
 const BugCreateForm = () => {
-  const [allProjects, setAllProjects] = useState<Project[]>([]);
-  const [projectContributors, setProjectContributors] = useState<User[]>([]);
+  const [allProjects, setAllProjects] = useState<UserProject[]>([]);
+  const [projectContributors, setProjectContributors] = useState<UserProjectContributors[]>([]);
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
   const [environment, setEnvironment] = useState("");
@@ -44,22 +49,35 @@ const BugCreateForm = () => {
   const [currentBehavior, setCurrentBehavior] = useState("");
   const [expectedBehavior, setExpectedBehavior] = useState("");
   const [stackTrace, setStackTrace] = useState("");
-  const [attachment, setAttachment] = useState<string | undefined>(undefined);
+  const [attachment, setAttachment] = useState<File | undefined>(undefined);
   const [projectId, setProjectId] = useState("");
   const [contributorId, setContributorId] = useState("");
+  const [priority, setPriority] = useState("")
 
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const [showSimilarBugsModal, setShowSimilarBugsModal] = useState(false);
-  const [similarBugs, setSimilarBugs] = useState<any[]>([]);
+  const [similarBugs, setSimilarBugs] = useState<DefectDuplicatesViewModel[]>([]);
   const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
+  const [duplicatedBugIds, setDuplicatedBugIds] = useState<string[]>([]);
 
-  const loggedUser: User = AuthService.getLoggedUser();
+  const user = useAtomValue(userAtom);
 
   useEffect(() => {
-    setAllProjects(ProjectService.getAllProjects());
+    try {
+      setIsLoading(true);
+      const fetchProjects = async () => {
+        const projects = await ProjectService.getAllProjectByUserAsync();
+        setAllProjects(projects);
+      }
+      fetchProjects();
+    } catch (error) {
+      toast.error("Erro ao carregar a página, tente novamente mais tarde.");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -69,15 +87,14 @@ const BugCreateForm = () => {
       return;
     }
 
-    const selectedProject = allProjects.find((p) => p.id === projectId);
-    if (!selectedProject || !selectedProject.contributors?.length) {
+    const selectedProject = allProjects.find((p) => p.projectId === projectId);
+    if (!selectedProject || !selectedProject.colaborators?.length) {
       setProjectContributors([]);
       setContributorId("");
       return;
     }
 
-    const users = UserService.getByListIds(selectedProject.contributors);
-    setProjectContributors(users);
+    setProjectContributors(selectedProject.colaborators);
     setContributorId("");
   }, [projectId, allProjects]);
 
@@ -155,17 +172,20 @@ const BugCreateForm = () => {
     setIsCheckingSimilarity(true);
 
     try {
-      const allBugs = BugService.getAllBugsByProject(projectId);
-      const similar = findSimilarBugs(
-        summary,
-        description,
-        projectId,
-        allBugs,
-        0.6
-      );
+      const request: FindDuplicatedDefectRequest = {
+        projectId: projectId,
+        summary: summary,
+        description: description,
+        version: version,
+        environment: Number(environment),
+        category: Number(category),
+        severity: Number(severity)
+      }
 
-      if (similar.length > 0) {
-        setSimilarBugs(similar);
+      const similarDefects: FindDefectDuplicatesResponse = await BugService.getDefectDuplicatesAsync(request);
+
+      if (similarDefects.duplicatesCount > 0) {
+        setSimilarBugs(similarDefects.defects);
         setShowSimilarBugsModal(true);
         return false;
       }
@@ -222,6 +242,9 @@ const BugCreateForm = () => {
       case "contributorId":
         setContributorId(value);
         break;
+      case "priority":
+        setPriority(value)
+        break
       default:
         break;
     }
@@ -241,7 +264,6 @@ const BugCreateForm = () => {
     } else if (currentStep === 2) {
       if (validateStep2()) {
         const canProceed = await checkForSimilarBugs();
-        console.log(canProceed)
         if (canProceed) {
           setCurrentStep(3);
           setErrors({});
@@ -293,24 +315,31 @@ const BugCreateForm = () => {
     );
 
     try {
-      await BugService.saveBug({
-        projectId,
-        summary,
-        description,
-        environment,
-        severity,
-        version,
-        category,
-        currentBehavior,
-        expectedBehavior,
-        stackTrace,
-        attachment,
-        createdBy: loggedUser.id,
-        status: StatusDefeito.NOVO,
-        createdDate: new Date(),
-        expiredDate,
-        contributorId,
-      });
+      const formData = new FormData();
+      formData.set("ProjectId", projectId)
+      formData.set("AssignedToUserEmail", contributorId)
+      formData.set("Summary", summary)
+      formData.set("Description", description)
+      formData.set("Environment", environment)
+      formData.set("Severity", severity)
+      formData.set("Category", category)
+      formData.set("Version", version)
+      formData.set("ExpectedBehaviour", expectedBehavior)
+      formData.set("ActualBehaviour", currentBehavior)
+      formData.set("LogTrace", stackTrace)
+      formData.set("Priority", priority)
+      
+      if (typeof attachment !== "undefined") {
+        formData.set("Attachment", attachment)
+      }
+
+      if (duplicatedBugIds.length > 0) {
+        duplicatedBugIds.forEach((id) => {
+          formData.set("duplicatesIds", id)
+        })
+      }
+
+      await BugService.createDefectAsync(formData);
 
       toast.success("Defeito criado com sucesso!", {
         description: "Seu defeito foi cadastrado em nosso sistema.",
@@ -332,7 +361,9 @@ const BugCreateForm = () => {
       setAttachment(undefined);
       setProjectId("");
       setContributorId("");
+      setPriority("")
       setErrors({});
+      setDuplicatedBugIds([])
 
       setTimeout(() => {
         window.location.href = "/www/bugs/list";
@@ -347,15 +378,20 @@ const BugCreateForm = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAddDuplicatedBug = (defectId: string) => {
+    if (!duplicatedBugIds.some((duplicadatedId) => duplicadatedId === defectId)) {
+      duplicatedBugIds.push(defectId)
+    }
+  }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setAttachment(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleRemoveDuplicatedBug = (defectId: string) => {
+    setDuplicatedBugIds((prev) => prev.filter((id) => id !== defectId));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setAttachment(e.target.files[0]);
+    }
   };
 
   const steps = [
@@ -383,7 +419,7 @@ const BugCreateForm = () => {
       </h2>
       <hr />
       <div className="flex justify-between items-center my-4 relative px-4">
-        {steps.map((step, index) => (
+        {steps.map((step) => (
           <div
             key={step.number}
             className="flex items-center flex-col sm:flex-row z-10"
@@ -442,13 +478,13 @@ const BugCreateForm = () => {
                     <SelectLabel className="text-gray-500 dark:text-gray-400">
                       Projetos
                     </SelectLabel>
-                    {allProjects.map((project: any) => (
+                    {allProjects.map((project: UserProject) => (
                       <SelectItem
-                        key={project.id}
-                        value={project.id}
+                        key={project.projectId}
+                        value={project.projectId}
                         className="dark:text-white hover:dark:bg-gray-600"
                       >
-                        {project.name}
+                        {project.projectName}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -479,13 +515,13 @@ const BugCreateForm = () => {
                     <SelectLabel className="text-gray-500 dark:text-gray-400">
                       Contribuintes
                     </SelectLabel>
-                    {projectContributors.map((user: any) => (
+                    {projectContributors.map((user: UserProjectContributors) => (
                       <SelectItem
-                        key={user.id}
-                        value={user.id}
+                        key={user.colaboratorId}
+                        value={user.colaboratorEmail}
                         className="dark:text-white hover:dark:bg-gray-600"
                       >
-                        {user.firstName} {user.lastName}
+                        {user.colaboratorName}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -511,7 +547,10 @@ const BugCreateForm = () => {
             setCurrentStep(3);
             setErrors({});
           }}
+          onAddDuplicatedBug={handleAddDuplicatedBug}
           similarBugs={similarBugs}
+          duplicatedIds={duplicatedBugIds}
+          onRemoveDuplicatedBug={handleRemoveDuplicatedBug}
           getStatusColor={(status) => {
             switch (status) {
               case "NOVO":
@@ -613,19 +652,19 @@ const BugCreateForm = () => {
                       Ambientes
                     </SelectLabel>
                     <SelectItem
-                      value="Produção"
+                      value="3"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Produção
                     </SelectItem>
                     <SelectItem
-                      value="Homologação"
+                      value="2"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Homologação
                     </SelectItem>
                     <SelectItem
-                      value="Desenvolvimento"
+                      value="1"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Desenvolvimento
@@ -699,6 +738,63 @@ const BugCreateForm = () => {
             </div>
 
             <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="priority">Prioridade</Label>
+              <Select
+                onValueChange={(value) => handleInputChange("priority", value)}
+                value={priority}
+              >
+                <SelectTrigger
+                  className={`w-full ${errors.priority ? "border-red-500 dark:border-red-400" : ""}`}
+                >
+                  <SelectValue placeholder="Selecione a severidade" />
+                </SelectTrigger>
+                <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                  <SelectGroup>
+                    <SelectLabel className="text-gray-500 dark:text-gray-400">
+                      Prioridade
+                    </SelectLabel>
+                    <SelectItem
+                      value="1"
+                      className="dark:text-white hover:dark:bg-gray-600"
+                    >
+                      Muito Alta
+                    </SelectItem>
+                    <SelectItem
+                      value="2"
+                      className="dark:text-white hover:dark:bg-gray-600"
+                    >
+                      Alta
+                    </SelectItem>
+                    <SelectItem
+                      value="3"
+                      className="dark:text-white hover:dark:bg-gray-600"
+                    >
+                      Média
+                    </SelectItem>
+                    <SelectItem
+                      value="4"
+                      className="dark:text-white hover:dark:bg-gray-600"
+                    >
+                      Baixa
+                    </SelectItem>
+                    <SelectItem
+                      value="5"
+                      className="dark:text-white hover:dark:bg-gray-600"
+                    >
+                      Muito Baixa
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {errors.priority && (
+                <p className="text-red-500 dark:text-red-400 text-sm flex items-center mt-1 animate-slide-down">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errors.priority}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col space-y-2 w-full">
               <Label htmlFor="bugVersion">Versão</Label>
               <Select
                 onValueChange={(value) => handleInputChange("version", value)}
@@ -755,7 +851,7 @@ const BugCreateForm = () => {
               )}
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
+            <div className="flex flex-col space-y-2 w-full md:col-span-2">
               <Label htmlFor="bugCategory">Categoria</Label>
               <Select
                 onValueChange={(value) => handleInputChange("category", value)}
@@ -772,25 +868,25 @@ const BugCreateForm = () => {
                       Categoria
                     </SelectLabel>
                     <SelectItem
-                      value="Funcional"
+                      value="1"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Funcional
                     </SelectItem>
                     <SelectItem
-                      value="Interface"
+                      value="2"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Interface
                     </SelectItem>
                     <SelectItem
-                      value="Performance"
+                      value="3"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Performance
                     </SelectItem>
                     <SelectItem
-                      value="Melhoria"
+                      value="4"
                       className="dark:text-white hover:dark:bg-gray-600"
                     >
                       Melhoria
