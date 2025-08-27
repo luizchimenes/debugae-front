@@ -1,3 +1,4 @@
+import { DefectCategory } from "../enums/DefectCategory";
 import { ProjectBug } from "./ProjectBug";
 
 export interface UserBug {
@@ -8,5 +9,6 @@ export interface UserBug {
   defectPriority: string;
   expirationDate: Date;
   createdAt: Date;
+  category: string;
   project: ProjectBug;
 }
