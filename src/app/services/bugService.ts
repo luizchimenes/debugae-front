@@ -94,6 +94,15 @@ export const BugService = {
   },
 
   // updateBug: async (updatedBug: Bug): Promise<void> => {
+  //   const oldBug = BugService.getBugById(updatedBug.defectId);
+  //   if (!oldBug) {
+  //     console.warn(
+  //       `Bug com ID ${updatedBug.defectId} não encontrado para atualização.`
+  //     );
+  //     return;
+  //   }
+  //   updatedBug.updatedDate = new Date();
+  // updateBug: async (updatedBug: Bug): Promise<void> => {
   //   const oldBug = BugService.getBugById(updatedBug.id);
   //   if (!oldBug) {
   //     console.warn(
@@ -109,11 +118,35 @@ export const BugService = {
   //       "Nenhum usuário logado. Não é possível registrar histórico."
   //     );
   //   }
+  //   const currentUser = await AuthService.getLoggedUser();
+  //   if (!currentUser) {
+  //     console.warn(
+  //       "Nenhum usuário logado. Não é possível registrar histórico."
+  //     );
+  //   }
 
   //   if (oldBug.status !== updatedBug.status) {
   //     if (currentUser) {
   //       let action: AcaoRealizada = AcaoRealizada.ATUALIZACAO_STATUS;
+  //   if (oldBug.status !== updatedBug.status) {
+  //     if (currentUser) {
+  //       let action: AcaoRealizada = AcaoRealizada.ATUALIZACAO_STATUS;
 
+  //       if (
+  //         updatedBug.status === StatusDefeito.RESOLVIDO &&
+  //         oldBug.status !== StatusDefeito.RESOLVIDO
+  //       ) {
+  //         updatedBug.closedDate = new Date();
+  //         action = AcaoRealizada.FECHAMENTO;
+  //       } else if (
+  //         updatedBug.status !== StatusDefeito.RESOLVIDO &&
+  //         oldBug.status === StatusDefeito.RESOLVIDO
+  //       ) {
+  //         updatedBug.closedDate = undefined;
+  //         action = AcaoRealizada.REABERTURA;
+  //       } else {
+  //         updatedBug.closedDate = oldBug.closedDate;
+  //       }
   //       if (
   //         updatedBug.status === StatusDefeito.RESOLVIDO &&
   //         oldBug.status !== StatusDefeito.RESOLVIDO
@@ -141,7 +174,23 @@ export const BugService = {
   //   } else {
   //     updatedBug.closedDate = oldBug.closedDate;
   //   }
+  //       DefeitoHistoricoService.salvarHistorico(
+  //         updatedBug.id,
+  //         action,
+  //         currentUser.id,
+  //         { status: oldBug.status, closedDate: oldBug.closedDate },
+  //         { status: updatedBug.status, closedDate: updatedBug.closedDate }
+  //       );
+  //     }
+  //   } else {
+  //     updatedBug.closedDate = oldBug.closedDate;
+  //   }
 
+  //   const bugs = BugService.getAllBugs().map((bug) =>
+  //     bug.id === updatedBug.id ? updatedBug : bug
+  //   );
+  //   localStorage.setItem(BUGS_KEY, JSON.stringify(bugs));
+  // },
   //   const bugs = BugService.getAllBugs().map((bug) =>
   //     bug.id === updatedBug.id ? updatedBug : bug
   //   );
