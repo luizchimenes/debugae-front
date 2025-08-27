@@ -40,6 +40,7 @@ const DashboardProjectView = () => {
           return;
         }
         const data = await ProjectService.getAllProjectByUserAsync();
+
         setProjects(data || []);
       } catch (error) {
         console.error("Erro ao carregar projetos:", error);
@@ -138,8 +139,8 @@ const DashboardProjectView = () => {
                         <div className="flex items-center space-x-1">
                           <Users className="w-4 h-4" />
                           <span>
-                            {project.totalContributors}{" "}
-                            {project.totalContributors === 1
+                            {project.membersCount}{" "}
+                            {project.membersCount === 1
                               ? "colaborador"
                               : "colaboradores"}
                           </span>
