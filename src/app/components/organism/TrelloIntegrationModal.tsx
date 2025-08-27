@@ -142,8 +142,8 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
     >
       {loading && (
         <LoadingOverlay
-          title="Loading..."
-          subtitle="Processing Trello data"
+          title="Carregando..."
+          subtitle="Carregando dados do trello, por favor aguarde."
           showDots={true}
         />
       )}
@@ -155,7 +155,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
           <div className="flex items-center gap-3">
             <KanbanSquare className="w-6 h-6 text-blue-500" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Integrate with Trello
+              Integrar user story com o Trello
             </h3>
           </div>
           <button
@@ -168,7 +168,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
 
         <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            Select the workspace, board, and user story to link this bug report.
+            Selecione uma workspace, board e user story para integrar o defeito com o Trello.
           </p>
         </div>
 
@@ -185,7 +185,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
               className="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="" disabled>
-                {isLoadingWorkspaces ? "Loading workspaces..." : "Select a workspace"}
+                {isLoadingWorkspaces ? "Carregando workspaces..." : "Selecione uma workspace"}
               </option>
               {workspaces.length > 0
                 ? workspaces.map((ws) => (
@@ -193,7 +193,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
                       {ws.displayName}
                     </option>
                   ))
-                : !isLoadingWorkspaces && <option disabled>No workspaces found</option>}
+                : !isLoadingWorkspaces && <option disabled>Nenhuma workspace encontrada</option>}
             </select>
           </div>
 
@@ -209,7 +209,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
               className="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="" disabled>
-                {isLoadingBoards ? "Loading boards..." : "Select a board"}
+                {isLoadingBoards ? "Carregando boards..." : "Selecione um board"}
               </option>
               {boards.length > 0
                 ? boards.map((b) => (
@@ -233,7 +233,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
               className="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="" disabled>
-                {isLoadingCards ? "Loading user stories..." : "Select a user story"}
+                {isLoadingCards ? "Carregando user stories..." : "Selecione uma user story"}
               </option>
               {cards.length > 0
                 ? cards.map((c) => (
@@ -268,7 +268,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
             className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             disabled={!selectedWorkspace || !selectedBoard || !selectedCard || loading}
           >
-            Create Card
+            Integrar com Trello
           </Button>
         </div>
       </div>
