@@ -29,6 +29,7 @@ import {
   Plus,
   Eye,
   Download,
+  Trello,
 } from "lucide-react";
 // import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
@@ -47,6 +48,9 @@ import UserModel from "@/app/models/User";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
 import { Project } from "@/app/models/Project";
+import TrelloIntegrationModal from "../organism/TrelloIntegrationModal";
+import { useRouter, useSearchParams } from "next/navigation";
+import api from "@/app/config/axiosConfig";
 
 interface BugViewProps {
   bugId: string;
@@ -62,6 +66,7 @@ const BugView = ({ bugId }: BugViewProps) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("details");
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showTrelloModal, setShowTrelloModal] = useState(false);
   const [comments, setComments] = useState<Comment[] | undefined>([]);
 
   const loggedUser = useAtomValue(userAtom);
@@ -87,14 +92,32 @@ const BugView = ({ bugId }: BugViewProps) => {
     }
   };
 
-  const handleCloseStatusModal = () => {
-    setShowStatusModal(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleCloseTrelloModal = () => {
+    console.log("Closing Trello Modal");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("isAuthenticated");
+    router.replace(`${window.location.pathname}?${params.toString()}`);
+    setShowTrelloModal(false);
   };
 
-  const handleBugStatusChanged = (updatedBug: Bug) => {
-    setBug(updatedBug);
-    fetchAll();
-  };
+  React.useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    const isAuthenticated = params.get("isAuthenticated");
+    console.log(params.toString());
+    if (isAuthenticated === "true" && showTrelloModal === false) {
+      console.log("Showing Trello Modal");
+      setShowTrelloModal(true);
+    }
+  }, [searchParams]);
+
+  const trelloReturnUrl = api.defaults.baseURL + `/trello/login?returnUrl=${window.location.href}`;
+
+  const handleTrelloLogin = () => {
+    window.location.href = trelloReturnUrl;
+  }
 
   const getSeverityColor = (severity: string) => {
     const colors = {
@@ -245,6 +268,15 @@ const BugView = ({ bugId }: BugViewProps) => {
             <Edit3 className="w-4 h-4 mr-2" />
             Alterar Status
           </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => handleTrelloLogin()}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Trello className="w-4 h-4 mr-2" />
+            Integrar com Trello
+          </Button>
           {/* <Button variant="outline" size="sm">
             <Settings className="w-4 h-4 mr-2" />
             Configurações
@@ -265,6 +297,14 @@ const BugView = ({ bugId }: BugViewProps) => {
           getStatusColor={getStatusColor}
         />
       )} */}
+
+      {bug && (
+        <TrelloIntegrationModal
+          show={showTrelloModal}
+          onClose={() => handleCloseTrelloModal()}
+          bug={bug}
+        />
+      )}
 
       <Card>
         <CardHeader>
