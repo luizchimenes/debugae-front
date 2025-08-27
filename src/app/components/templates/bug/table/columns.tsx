@@ -55,20 +55,11 @@ export const columns: ColumnDef<UserBug>[] = [
     ),
   },
   {
-    accessorKey: "projectId",
+    accessorFn: (row) => row.project?.projectName, // pega direto do objeto
+    id: "projectName", // id único para a coluna
     header: "Projeto",
-    cell: ({ row }) => {
-      const projectId = row.getValue("projectId") as string;
-      const [project, setProject] = useState<Project>();
-
-      useEffect(() => {
-        if (projectId) {
-          const project = ProjectService.getById(projectId);
-          setProject(project);
-        }
-      }, []);
-
-      return <div className="capitalize">{project?.name}</div>;
+    cell: ({ row }) => {  
+      return <div className="capitalize">{row.original.project?.projectName}</div>;
     },
   },
   {
