@@ -100,7 +100,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
 
   const handleCreateCard = async () => {
     if (!selectedWorkspace || !selectedBoard || !selectedCard) {
-      toast.warning("Please fill all fields to continue.");
+      toast.warning("Por favor, preencha os campos para continuar.");
       return;
     }
 
@@ -111,7 +111,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
         bug.defectId,
         comment
       );
-      toast.success("Successfully integrated with Trello!");
+      toast.success("Integração com o Trello realizada com sucesso!");
 
       setSelectedBoard("");
       setSelectedCard("");
@@ -124,7 +124,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to integrate with Trello.");
+      toast.error("Erro ao integrar com o Trello.");
     } finally {
       setLoading(false);
     }
