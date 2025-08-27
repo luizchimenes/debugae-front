@@ -21,7 +21,7 @@ const BugListTemplate = () => {
     const fetchBugs = async () => {
         const data = await BugService.getAllBugsByUserAsync()
         setData(data);
-    }
+            }
 
     fetchBugs();
 

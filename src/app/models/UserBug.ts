@@ -1,3 +1,4 @@
+import { ProjectBug } from "./ProjectBug";
 
 export interface UserBug {
   id: string;
@@ -6,5 +7,6 @@ export interface UserBug {
   status: string;
   defectPriority: string;
   expirationDate: Date;
-  createdAt: Date
+  createdAt: Date;
+  project: ProjectBug;
 }
