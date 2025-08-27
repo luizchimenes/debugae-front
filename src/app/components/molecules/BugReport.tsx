@@ -156,24 +156,24 @@ const BugReport = () => {
     },
   ];
 
-  // const categoryData = [
-  //   {
-  //     name: "Funcional",
-  //     value: bugs?.filter((bug) => bug.category == "Funcional").length || 0,
-  //   },
-  //   {
-  //     name: "Interface",
-  //     value: bugs?.filter((bug) => bug.category == "Interface").length || 0,
-  //   },
-  //   {
-  //     name: "Performance",
-  //     value: bugs?.filter((bug) => bug.category == "Performance").length || 0,
-  //   },
-  //   {
-  //     name: "Melhoria",
-  //     value: bugs?.filter((bug) => bug.category == "Melhoria").length || 0,
-  //   },
-  // ];
+  const categoryData = [
+    {
+      name: "Funcional",
+      value: bugs?.filter((bug) => bug.category == "Functional").length || 0,
+    },
+    {
+      name: "Interface",
+      value: bugs?.filter((bug) => bug.category == "Interface").length || 0,
+    },
+    {
+      name: "Performance",
+      value: bugs?.filter((bug) => bug.category == "Performance").length || 0,
+    },
+    {
+      name: "Melhoria",
+      value: bugs?.filter((bug) => bug.category == "Improvement").length || 0,
+    },
+  ];
 
   const metrics = {
     total: bugs?.length,
@@ -399,7 +399,7 @@ const BugReport = () => {
               Distribuição dos defeitos por categoria
             </CardDescription>
           </CardHeader>
-          {/* <CardContent>
+          <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData}>
@@ -411,7 +411,7 @@ const BugReport = () => {
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent> */}
+          </CardContent>
         </Card>
       </div>
     </div>
