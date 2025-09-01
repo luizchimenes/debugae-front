@@ -10,6 +10,7 @@ import { FindDefectDuplicatesResponse } from "../models/responses/getDefectDupli
 import { CreateDefectResponse } from "../models/responses/createDefectResponse";
 import { UserBug } from "../models/UserBug";
 import User from "../models/User";
+import UpdateDefectStatusRequest from "../models/requests/updateDefectStatusRequest";
 
 const BUGS_KEY = "bugs";
 
@@ -218,6 +219,12 @@ export const BugService = {
     const response = await api.post('/defects/findDuplicates', request);
 
     return response.data as FindDefectDuplicatesResponse;
+  },
+
+  updateStatusAsync: async (request: UpdateDefectStatusRequest): Promise<any> => {
+    const response = await api.patch('/defects/updateStatus', request);
+
+    return response.data;
   },
 
   createDefectAsync: async (formData: FormData): Promise<CreateDefectResponse> => {
