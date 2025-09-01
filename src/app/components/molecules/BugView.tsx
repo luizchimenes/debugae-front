@@ -51,6 +51,8 @@ import { Project } from "@/app/models/Project";
 import TrelloIntegrationModal from "../organism/TrelloIntegrationModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/app/config/axiosConfig";
+import ChangeStatusModal from "../organism/ChangeStatusModal";
+import { DefectSeverity } from "@/app/enums/DefectSeverity";
 
 interface BugViewProps {
   bugId: string;
@@ -220,6 +222,49 @@ const BugView = ({ bugId }: BugViewProps) => {
     }
   };
 
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case StatusDefeito.RESOLVIDO:
+        return "Resolvido";
+      case StatusDefeito.INVALIDO:
+        return "Inválido";
+      case StatusDefeito.REABERTO:
+        return "Reaberto";
+      case StatusDefeito.EM_RESOLUCAO:
+        return "Em Resolução";
+      case StatusDefeito.AGUARDANDO_USUARIO:
+        return "Aguardando Usuário";
+      default:
+        return "Novo";
+    }
+  }
+
+  const getSeverityText = (severity: string): string => {
+    switch (severity) {
+      case "VeryHigh":
+        return "Muito Alta";
+      case "High":
+        return "Alta";
+      case "Medium":
+        return "Média";
+      case "Low":
+        return "Baixa";
+      case "VeryLow":
+        return "Muito Baixa";
+      default:
+        return "Não definida";
+    }
+  }
+
+  const handleCloseStatusModal = () => {
+    setShowStatusModal(false);
+  };
+
+  const handleBugStatusChanged = (updatedBug: Bug) => {
+    setBug(updatedBug);
+    fetchAll();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -288,7 +333,7 @@ const BugView = ({ bugId }: BugViewProps) => {
         </div>
       </div>
 
-      {/* {bug && (
+      {bug && (
         <ChangeStatusModal
           show={showStatusModal}
           onClose={handleCloseStatusModal}
@@ -296,7 +341,7 @@ const BugView = ({ bugId }: BugViewProps) => {
           onStatusChanged={handleBugStatusChanged}
           getStatusColor={getStatusColor}
         />
-      )} */}
+      )} 
 
       {bug && (
         <TrelloIntegrationModal
@@ -349,7 +394,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                 <CardTitle
                   className={`text-2xl ${getSeverityColor(bug.defectSeverity || "Baixa")} dark:text-white`}
                 >
-                  {bug.defectSeverity || "Não definida"}
+                  {getSeverityText(bug.defectSeverity || "Não definida")}
                 </CardTitle>
               </div>
               <div
@@ -371,7 +416,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                 <CardTitle
                   className={`text-2xl ${getStatusColor(bug.defectStatus || "Aberto")} dark:text-white`}
                 >
-                  {bug.defectStatus || "Não definido"}
+                  {getStatusText(bug.defectStatus) || "Não definido"}
                 </CardTitle>
               </div>
               <div
