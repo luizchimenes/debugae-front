@@ -103,15 +103,6 @@ export const BugService = {
   //     return;
   //   }
   //   updatedBug.updatedDate = new Date();
-  // updateBug: async (updatedBug: Bug): Promise<void> => {
-  //   const oldBug = BugService.getBugById(updatedBug.id);
-  //   if (!oldBug) {
-  //     console.warn(
-  //       `Bug com ID ${updatedBug.defectId} não encontrado para atualização.`
-  //     );
-  //     return;
-  //   }
-  //   updatedBug.updatedDate = new Date();
 
   //   const currentUser = await AuthService.getLoggedUser();
   //   if (!currentUser) {
