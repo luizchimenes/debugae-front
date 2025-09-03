@@ -606,7 +606,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                       🔍 Stack Trace
                     </h3>
                     <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm font-mono">
-                      {bug.defectStatus}
+                      {bug.logStackTrace || "Nenhum stack trace disponível"}
                     </pre>
                   </div>
                 )}

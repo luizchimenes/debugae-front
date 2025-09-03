@@ -37,6 +37,7 @@ export interface Bug {
     createdAt: Date;
   }[];
   trelloUserStories: any[];
+  logStackTrace: string;
 }
 
 

@@ -170,7 +170,10 @@ const UserRegisterForm = () => {
                   <SelectGroup>
                     <SelectLabel>Departamentos</SelectLabel>
                     <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="it">Tecnologia</SelectItem>
+                    <SelectItem value="hr">Recursos humanos</SelectItem>
+                    <SelectItem value="sales">Vendas</SelectItem>
+                    <SelectItem value="administrative">Administrativo</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
