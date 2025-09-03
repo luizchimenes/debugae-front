@@ -10,18 +10,41 @@ import { BugService } from "@/app/services/bugService";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
 import { UserBug } from "@/app/models/UserBug";
+import { StatusDefeito } from "@/app/enums/StatusDefeito";
 
 const BugListTemplate = () => {
   const [data, setData] = useState<UserBug[]>([]);
 
   const loggedUser = useAtomValue(userAtom);
 
-  useEffect(() => {
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case StatusDefeito.RESOLVIDO:
+        return "Resolvido";
+      case StatusDefeito.INVALIDO:
+        return "Inválido";
+      case StatusDefeito.REABERTO:
+        return "Reaberto";
+      case StatusDefeito.EM_RESOLUCAO:
+        return "Em Resolução";
+      case StatusDefeito.AGUARDANDO_USUARIO:
+        return "Aguardando Usuário";
+      default:
+        return "Novo";
+    }
+  }
 
+  useEffect(() => {
     const fetchBugs = async () => {
-        const data = await BugService.getAllBugsByUserAsync()
-        setData(data);
-            }
+      const data = await BugService.getAllBugsByUserAsync()
+      data.map((bug) => {
+        bug.status = getStatusText(bug.status);
+        console.log('new status ', bug.status)
+      })
+      setData(data);
+    }
+
+    console.log(data)
 
     fetchBugs();
 

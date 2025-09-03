@@ -47,18 +47,20 @@ interface DataTableProps<TData, TValue> {
 
 // Opções de filtro baseadas nas colunas reais
 const statusOptions = [
-  { value: "aberto", label: "Aberto" },
-  { value: "em_progresso", label: "Em Progresso" },
-  { value: "resolvido", label: "Resolvido" },
-  { value: "fechado", label: "Fechado" },
-  { value: "invalido", label: "Inválido" },
+  { value: "Resolvido", label: "Resolvido" },
+  { value: "Inválido", label: "Em Inválido" },
+  { value: "Reaberto", label: "Reaberto" },
+  { value: "Em Resolução", label: "Em Resolução" },
+  { value: "Aguardando Usuário", label: "Aguardando Usuário" },
+  { value: "Novo", label: "Novo" }
 ];
 
 const severityOptions = [
-  { value: "baixa", label: "Baixa" },
-  { value: "media", label: "Média" },
-  { value: "alta", label: "Alta" },
-  { value: "critica", label: "Crítica" },
+  { value: "P1", label: "Muito alta (P1)" },
+  { value: "P2", label: "Alta (P2)" },
+  { value: "P3", label: "Média (P3)" },
+  { value: "P4", label: "Baixa (P4)" },
+  { value: "P5", label: "Muito baixa (P5)" },
 ];
 
 export function BugDataTable<TData, TValue>({
@@ -220,7 +222,7 @@ export function BugDataTable<TData, TValue>({
                 </label>
                 <select
                   value={getFilterValue("defectPriority")}
-                  onChange={(e) => setFilterValue("severity", e.target.value)}
+                  onChange={(e) => setFilterValue("defectPriority", e.target.value)}
                   className="w-full h-10 px-3 border border-gray-300 dark:border-gray-600 rounded-md focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Todas as prioridades</option>
