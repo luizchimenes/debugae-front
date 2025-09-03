@@ -149,7 +149,7 @@ export function BugDataTable<TData, TValue>({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Defeitos
+                Defeitos assinalados ao seu usuário
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {table.getFilteredRowModel().rows.length} defeito(s)
