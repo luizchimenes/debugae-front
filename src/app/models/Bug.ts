@@ -27,7 +27,7 @@ export interface Bug {
     uploadedAt: Date;
     uploadedBy: string;
   };
-  relatedDefects: any[];
+  relatedDefects: RelatedDefect[];
   history: {
     action: string;
     updatedField: string | null;
@@ -40,6 +40,24 @@ export interface Bug {
   logStackTrace: string;
 }
 
+export interface RelatedDefect {
+  category: string;
+  createdAt: string;
+  id: string;
+  status: string;
+  summary: string;
+  defectPriority: string;
+  description: string;
+  expirationDate: string;
+  project: relatedDefectProject;
+}
+
+export interface relatedDefectProject {
+  projectId: string;
+  projectName: string;
+  createdAt: string;
+  projectDescription: string;
+}
 
 export interface BugOld {
   id: string;

@@ -30,6 +30,7 @@ import {
   Eye,
   Download,
   Trello,
+  Tag,
 } from "lucide-react";
 // import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
@@ -53,6 +54,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/app/config/axiosConfig";
 import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { DefectSeverity } from "@/app/enums/DefectSeverity";
+import { toast } from "sonner";
 
 interface BugViewProps {
   bugId: string;
@@ -239,6 +241,15 @@ const BugView = ({ bugId }: BugViewProps) => {
     }
   }
 
+  const handleViewDefect = (defectId: string) => {
+    const url = `/www/bugs/view/${defectId}`;
+    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+
+    if (!newWindow) {
+      toast.warning("Erro ao abrir defeito relacionado em nova guia.");
+    }
+  };
+
   const getSeverityText = (severity: string): string => {
     switch (severity) {
       case "VeryHigh":
@@ -258,6 +269,16 @@ const BugView = ({ bugId }: BugViewProps) => {
 
   const handleCloseStatusModal = () => {
     setShowStatusModal(false);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const colors = {
+      critical: "bg-red-500",
+      high: "bg-orange-500",
+      medium: "bg-yellow-500",
+      low: "bg-blue-500",
+    };
+    return colors[priority as keyof typeof colors] || "bg-gray-500";
   };
 
   const handleBugStatusChanged = (updatedBug: Bug) => {
@@ -637,6 +658,77 @@ const BugView = ({ bugId }: BugViewProps) => {
                     </p>
                   </div>
                 </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                    🪃 Defeitos relacionados
+                  </h3>
+                  {bug.relatedDefects.length === 0 && (
+                    <p className="text-gray-600 dark:text-gray-300">
+                      Nenhum defeito relacionado.
+                    </p>
+                  )}
+                  <ScrollArea className="h-96">
+                  {bug.relatedDefects.map((relatedBug) => (
+                    <div
+                      key={relatedBug.id}
+                      className="border border-primary dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div
+                              className={`w-3 h-3 rounded-full ${getPriorityColor(relatedBug.defectPriority)}`}
+                            />
+                            <h3 className="font-semibold text-gray-800 truncate dark:text-white">
+                              #{relatedBug.id} - {relatedBug.summary}
+                            </h3>
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(relatedBug.status)}`}
+                            >
+                              {getStatusIcon(relatedBug.status)}
+                              <span className="capitalize">
+                                {relatedBug.status.replace("-", " ")}
+                              </span>
+                            </span>
+                          </div>
+
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2 dark:text-white">
+                            {relatedBug.description}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="w-4 h-4" />
+                              <span className="dark:text-white">
+                                Criado:{" "}
+                                {new Date(relatedBug.createdAt || "").toLocaleDateString("pt-BR")}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Tag className="w-4 h-4" />
+                              <span className="dark:text-white">
+                                Prioridade: {relatedBug.defectPriority}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2 ml-4">
+                          <Button
+                            className="cursor-pointer hover:bg-muted transition"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDefect(relatedBug.id)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </ScrollArea>
+              </div>
               </div>
             )}
 
