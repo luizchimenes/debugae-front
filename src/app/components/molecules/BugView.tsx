@@ -286,6 +286,28 @@ const BugView = ({ bugId }: BugViewProps) => {
     fetchAll();
   };
 
+  const downloadAttachment = async () => {
+    try {
+      setLoading(true);
+      const resp = await BugService.downloadAttachmentAsync(bugId);
+
+      const url = window.URL.createObjectURL(resp);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = 'anexo.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Erro ao baixar anexo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -769,23 +791,12 @@ const BugView = ({ bugId }: BugViewProps) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => UtilService.downloadAttachment(bug.attachment?.fileName!)}
+                            onClick={() => downloadAttachment()}
                             className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900"
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Baixar
                           </Button>
-                          {UtilService.isImageFile(bug.attachment.fileType) && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => UtilService.previewAttachment(bug.attachment?.fileName!)}
-                              className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900"
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Visualizar
-                            </Button>
-                          )}
                         </div>
                       </div>
 

@@ -186,5 +186,13 @@ export const BugService = {
     });
 
     return response.data as CreateDefectResponse;
-  } 
+  },
+  
+  downloadAttachmentAsync: async (defectId: string): Promise<any> => {
+    const response = await api.get(`/defects/downloadAttachment?defectId=${defectId}`, {
+      responseType: "blob",
+    });
+
+    return response.data;
+  }
 };
