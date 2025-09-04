@@ -797,7 +797,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                         <span>
                           Este anexo foi enviado em{" "}
                           {UtilService.formatDate(bug.createdAt)} por{" "}
-                          {creator?.firstName + " " + creator?.lastName}
+                          {bug.attachment.uploadedBy || "Usuário desconhecido"}.
                         </span>
                       </div>
                     </div>
