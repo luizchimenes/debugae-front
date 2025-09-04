@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
 import { UserBug } from "@/app/models/UserBug";
+import { StatusDefeito } from "@/app/enums/StatusDefeito";
 
 const DashboardBugView = () => {
   const [bugs, setBugs] = useState<UserBug[]>([]);
@@ -115,6 +116,23 @@ const DashboardBugView = () => {
     return expiry < today;
   };
 
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case StatusDefeito.RESOLVIDO:
+        return "Resolvido";
+      case StatusDefeito.INVALIDO:
+        return "Inválido";
+      case StatusDefeito.REABERTO:
+        return "Reaberto";
+      case StatusDefeito.EM_RESOLUCAO:
+        return "Em Resolução";
+      case StatusDefeito.AGUARDANDO_USUARIO:
+        return "Aguardando Usuário";
+      default:
+        return "Novo";
+    }
+  }
+
   if (isLoading) {
     return <LoadingOverlay />;
   }
@@ -177,7 +195,7 @@ const DashboardBugView = () => {
                         >
                           {getStatusIcon(bug.status)}
                           <span className="capitalize">
-                            {bug.status.replace("-", " ")}
+                            {getStatusText(bug.status)}
                           </span>
                         </span>
                       </div>
