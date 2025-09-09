@@ -55,7 +55,7 @@ const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
         return 2;
       case StatusDefeito.REABERTO:
         return 3;
-      case StatusDefeito.EM_RESOLUCAO:
+      case StatusDefeito.EM_RESOLUCAO || status === "InProgress":
         return 4;
       case StatusDefeito.AGUARDANDO_USUARIO:
         return 5;
@@ -74,6 +74,8 @@ const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
         return "Reaberto";
       case StatusDefeito.EM_RESOLUCAO:
         return "Em Resolução";
+      case "InProgress":
+        return "Em Progresso";
       case StatusDefeito.AGUARDANDO_USUARIO:
         return "Aguardando Usuário";
       default:
@@ -133,7 +135,7 @@ const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Status Atual:{" "}
               <span className={getStatusColor(bug.defectStatus || "Aberto")}>
-                {bug.defectStatus || "Aberto"}
+                {getStatusText(bug.defectStatus) || "Aberto"}
               </span>
             </label>
             <select

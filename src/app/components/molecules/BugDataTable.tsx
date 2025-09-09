@@ -48,7 +48,7 @@ interface DataTableProps<TData, TValue> {
 // Opções de filtro baseadas nas colunas reais
 const statusOptions = [
   { value: "Resolvido", label: "Resolvido" },
-  { value: "Inválido", label: "Em Inválido" },
+  { value: "Inválido", label: "Inválido" },
   { value: "Reaberto", label: "Reaberto" },
   { value: "Em Resolução", label: "Em Resolução" },
   { value: "Aguardando Usuário", label: "Aguardando Usuário" },
