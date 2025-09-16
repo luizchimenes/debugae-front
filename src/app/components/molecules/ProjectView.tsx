@@ -36,6 +36,7 @@ import User from "@/app/models/User";
 import { GetProjectDetailsResponse, GetProjectDetailsResponseDefect } from "@/app/models/responses/getProjectDetailsResponse";
 import { UpdateProjectResponse } from "@/app/models/responses/updateProjectResponse";
 import ManageProjectContributorsModal from "../organism/ManageProjectContributorsModal";
+import { StatusDefeito } from "@/app/enums/StatusDefeito";
 
 interface ProjectViewProps {
   projectId: string;
@@ -95,6 +96,23 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
 
     fetchData();
   }, [projectId]);
+
+  const getDefectStatusText = (status: string): string => {
+      switch (status) {
+        case StatusDefeito.RESOLVIDO:
+          return "Resolvido";
+        case StatusDefeito.INVALIDO:
+          return "Inválido";
+        case StatusDefeito.REABERTO:
+          return "Reaberto";
+        case StatusDefeito.EM_RESOLUCAO:
+          return "Em Resolução";
+        case StatusDefeito.AGUARDANDO_USUARIO:
+          return "Aguardando Usuário";
+        default:
+          return "Novo";
+      }
+    }
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -524,7 +542,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
                           >
                             {getStatusIcon(bug.status)}
                             <span className="capitalize">
-                              {bug.status.replace("-", " ")}
+                              {getDefectStatusText(bug.status)}
                             </span>
                           </span>
                         </div>

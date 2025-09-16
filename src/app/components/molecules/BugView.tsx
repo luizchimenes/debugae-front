@@ -295,7 +295,7 @@ const BugView = ({ bugId }: BugViewProps) => {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = 'anexo.pdf';
+      a.download = 'anexo_' + (bug?.attachment?.fileName || 'defeito_' + bugId);
       document.body.appendChild(a);
       a.click();
       a.remove();
