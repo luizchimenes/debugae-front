@@ -1,18 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Bug } from "@/app/models/Bug";
-import { Button, Input } from "../atoms";
-import { Label } from "../atoms/LabelComponent";
-import { KanbanSquare, X } from "lucide-react";
+import { toast } from "sonner";
+import { LoadingOverlay } from "../atoms/LoadingPage";
 import {
   TrelloBoard,
   TrelloCard,
   TrelloService,
   TrelloWorkspace,
 } from "@/app/services/trelloService";
-import { toast } from "sonner";
-import { LoadingOverlay } from "../atoms/LoadingPage";
+import { KanbanSquare, X } from "lucide-react";
 
 interface TrelloIntegrationModalProps {
   show: boolean;
@@ -28,20 +26,13 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
   const [selectedBoard, setSelectedBoard] = useState("");
   const [cards, setCards] = useState<TrelloCard[]>([]);
   const [selectedCard, setSelectedCard] = useState("");
-  const [isVisible, setIsVisible] = useState(show);
   const [comment, setComment] = useState("");
-  
+
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setIsVisible(show);
-  }, [show]);
-
-  useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
@@ -55,7 +46,6 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
       const response = await fetchFn();
       setter(response);
     } catch (err) {
-      console.error(err);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -67,7 +57,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
       fetchData(
         () => TrelloService.getAllWorkspacesAsync(),
         setWorkspaces,
-        "Error fetching Trello workspaces."
+        "Erro ao buscar workspaces do Trello."
       );
     }
   }, [show]);
@@ -77,7 +67,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
       fetchData(
         () => TrelloService.getBoardsAsync(selectedWorkspace),
         setBoards,
-        "Error fetching Trello boards."
+        "Erro ao buscar boards do Trello."
       );
     } else {
       setBoards([]);
@@ -90,7 +80,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
       fetchData(
         () => TrelloService.getCardsAsync(selectedBoard),
         setCards,
-        "Error fetching Trello user stories."
+        "Erro ao buscar user stories do Trello."
       );
     } else {
       setCards([]);
@@ -100,7 +90,7 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
 
   const handleCreateCard = async () => {
     if (!selectedWorkspace || !selectedBoard || !selectedCard) {
-      toast.warning("Por favor, preencha os campos para continuar.");
+      toast.warning("Preencha todos os campos para continuar.");
       return;
     }
 
@@ -122,154 +112,170 @@ const TrelloIntegrationModal = ({ show, onClose, bug }: TrelloIntegrationModalPr
       setWorkspaces([]);
 
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Erro ao integrar com o Trello.");
     } finally {
       setLoading(false);
     }
   };
 
-  const isLoadingWorkspaces = loading && workspaces.length === 0;
-  const isLoadingBoards = loading && boards.length === 0 && !!selectedWorkspace;
-  const isLoadingCards = loading && cards.length === 0 && !!selectedBoard;
+  if (!show) return null;
 
-  if (!isVisible) return null;
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={() => onClose()}
+      onClick={onClose}
     >
       {loading && (
         <LoadingOverlay
           title="Carregando..."
-          subtitle="Carregando dados do trello, por favor aguarde."
-          showDots={true}
+          subtitle="Carregando dados do Trello, por favor aguarde."
+          showDots
         />
       )}
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
+        className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3">
-            <KanbanSquare className="w-6 h-6 text-blue-500" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <KanbanSquare className="w-6 h-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Integrar user story com o Trello
-            </h3>
+            </h2>
           </div>
           <button
-            onClick={() => onClose()}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1"
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            Selecione uma workspace, board e user story para integrar o defeito com o Trello.
-          </p>
-        </div>
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          Selecione uma workspace, board e user story para integrar o defeito{" "}
+          <span className="font-medium text-gray-900 dark:text-gray-200">#{bug.defectId}</span>.
+        </p>
 
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <div className="mt-6 space-y-4">
           <div>
-            <Label htmlFor="workspace" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="workspace"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Workspace
-            </Label>
+            </label>
             <select
               id="workspace"
               value={selectedWorkspace}
               onChange={(e) => setSelectedWorkspace(e.target.value)}
-              disabled={isLoadingWorkspaces}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
             >
-              <option value="" disabled>
-                {isLoadingWorkspaces ? "Carregando workspaces..." : "Selecione uma workspace"}
+              <option value="">
+                {loading ? "Carregando workspaces..." : "Selecione uma workspace"}
               </option>
-              {workspaces.length > 0
-                ? workspaces.map((ws) => (
-                    <option key={ws.id} value={ws.id}>
-                      {ws.displayName}
-                    </option>
-                  ))
-                : !isLoadingWorkspaces && <option disabled>Nenhuma workspace encontrada</option>}
+              {workspaces.length > 0 ? (
+                workspaces.map((ws) => (
+                  <option key={ws.id} value={ws.id}>
+                    {ws.displayName}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Nenhuma workspace encontrada</option>
+              )}
             </select>
           </div>
 
           <div>
-            <Label htmlFor="board" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="board"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Board
-            </Label>
+            </label>
             <select
               id="board"
               value={selectedBoard}
               onChange={(e) => setSelectedBoard(e.target.value)}
-              disabled={!selectedWorkspace || isLoadingBoards}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!selectedWorkspace || loading}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
             >
-              <option value="" disabled>
-                {isLoadingBoards ? "Carregando boards..." : "Selecione um board"}
+              <option value="">
+                {loading ? "Carregando boards..." : "Selecione um board"}
               </option>
-              {boards.length > 0
-                ? boards.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))
-                : !isLoadingBoards && <option disabled>No boards found</option>}
+              {boards.length > 0 ? (
+                boards.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Nenhum board encontrado</option>
+              )}
             </select>
           </div>
 
           <div>
-            <Label htmlFor="card" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="card"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               User Story
-            </Label>
+            </label>
             <select
               id="card"
               value={selectedCard}
               onChange={(e) => setSelectedCard(e.target.value)}
-              disabled={!selectedBoard || isLoadingCards}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!selectedBoard || loading}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
             >
-              <option value="" disabled>
-                {isLoadingCards ? "Carregando user stories..." : "Selecione uma user story"}
+              <option value="">
+                {loading ? "Carregando user stories..." : "Selecione uma user story"}
               </option>
-              {cards.length > 0
-                ? cards.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name || "(No description)"}
-                    </option>
-                  ))
-                : !isLoadingCards && <option disabled>No user stories found</option>}
+              {cards.length > 0 ? (
+                cards.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name || "(Sem descrição)"}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Nenhuma user story encontrada</option>
+              )}
             </select>
           </div>
-          
+
           <div>
-             <Label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="comment"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Comentário
-            </Label>
-            <Input
+            </label>
+            <input
               id="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Adicione um comentário..."
-              className="w-full p-3"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Button variant="outline" onClick={() => onClose()}>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+          >
             Cancelar
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={handleCreateCard}
-            className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             disabled={!selectedWorkspace || !selectedBoard || !selectedCard || loading}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Integrar com Trello
-          </Button>
+          </button>
         </div>
       </div>
     </div>
