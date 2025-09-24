@@ -36,8 +36,15 @@ export interface Bug {
     contributor: string;
     createdAt: Date;
   }[];
-  trelloUserStories: any[];
+  trelloUserStories: TrelloUserStory[];
   logStackTrace: string;
+}
+
+export interface TrelloUserStory {
+  defectId: string;
+  desc: string;
+  name: string;
+  shortUrl: string;
 }
 
 export interface RelatedDefect {

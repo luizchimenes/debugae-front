@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -10,7 +10,7 @@ import {
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
 import { BugService } from "@/app/services/bugService";
-import { Bug, BugOld } from "@/app/models/Bug";
+import { Bug, BugOld, TrelloUserStory } from "@/app/models/Bug";
 import {
   Bug as BugIcon,
   Calendar,
@@ -31,6 +31,8 @@ import {
   Download,
   Trello,
   Tag,
+  KanbanIcon,
+  ExternalLink,
 } from "lucide-react";
 // import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
@@ -59,6 +61,34 @@ import { toast } from "sonner";
 interface BugViewProps {
   bugId: string;
 }
+
+const PostIt = ({ userStory }: { userStory: TrelloUserStory }) => {
+
+  const handleRedirect = (e: React.MouseEvent, shortUrl: string) => {
+    e.stopPropagation(); 
+    e.preventDefault(); 
+    console.log('a')
+    window.open(shortUrl, "_blank");
+  }
+
+  return (
+    <div
+      className="w-56 h-40 bg-yellow-200 shadow-lg rounded-xl p-4 cursor-grab active:cursor-grabbing relative"
+    >
+      <h3 className="font-bold text-sm mb-2">{userStory.name}</h3>
+      <p className="text-xs line-clamp-3">{userStory.desc}</p>
+      <button
+        type="button"
+        onClick={(e) => handleRedirect(e, userStory.shortUrl)}
+        onPointerDown={(e) => e.stopPropagation()} 
+        onMouseDown={(e) => e.stopPropagation()}  
+        className="absolute bottom-2 right-2 p-2 rounded-full bg-yellow-300 hover:bg-yellow-400 shadow cursor-pointer"
+      >
+        <ExternalLink size={16} />
+      </button>
+    </div>
+  );
+};
 
 
 const BugView = ({ bugId }: BugViewProps) => {
@@ -568,6 +598,17 @@ const BugView = ({ bugId }: BugViewProps) => {
               Comentários ({bug.comments.length})
             </button>
             <button
+              onClick={() => setActiveTab("trello")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "trello"
+                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                  : "text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-300 dark:hover:text-purple-300 dark:hover:bg-purple-900"
+              }`}
+            >
+              <KanbanIcon className="w-4 h-4 mr-2 inline" />
+              User stories
+            </button>
+            <button
               onClick={() => setActiveTab("history")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "history"
@@ -760,6 +801,14 @@ const BugView = ({ bugId }: BugViewProps) => {
 
             {activeTab === "history" && (
               <BugHistoryTab history={logs} getStatusColor={getStatusColor} />
+            )}
+
+            {activeTab == "trello" && (
+              <div className="space-y-6">
+                {bug.trelloUserStories && bug.trelloUserStories.map((userStory) => (
+                  <PostIt key={userStory.defectId} userStory={userStory} />
+                ))}
+              </div>
             )}
 
             {activeTab === "attachments" && (
