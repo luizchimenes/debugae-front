@@ -34,10 +34,11 @@ export interface Bug {
     oldValue: string | null;
     newValue: string | null;
     contributor: string;
-    createdAt: Date;
+    createdAt: string;
   }[];
   trelloUserStories: TrelloUserStory[];
   logStackTrace: string;
+  tags: string[];
 }
 
 export interface TrelloUserStory {

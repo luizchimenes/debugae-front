@@ -114,5 +114,13 @@ export const ProjectService = {
     }
 
     return response.data as ManageContributorsRequest;
+  },
+
+  downloadAttachmentAsync: async (projectId: string): Promise<any> => {
+    const response = await api.get(`/reports/downloadProjectPdfReport?projectId=${projectId}`, {
+      responseType: "blob",
+    });
+
+    return response.data;
   }
 };

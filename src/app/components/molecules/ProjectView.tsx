@@ -26,6 +26,7 @@ import {
   Check,
   XCircle,
   RefreshCw,
+  FileText,
 } from "lucide-react";
 import ProjectEditModal from "../organism/ProjectChangeModal";
 import { useRouter } from "next/navigation";
@@ -181,6 +182,28 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
     }
   };
 
+  const downloadAttachment = async () => {
+      try {
+        setIsLoading(true);
+        const resp = await ProjectService.downloadAttachmentAsync(projectId);
+  
+        const url = window.URL.createObjectURL(resp);
+  
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = 'relatorio_' + (project?.projectName);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+  
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        toast.error("Erro ao baixar anexo.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
   const filteredDefects = bugs.filter((bug) => {
     const matchesSearch =
       bug.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -243,7 +266,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-2">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {project.projectName}
@@ -264,6 +287,11 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
               Gerenciar contribuidores
             </Button>
           )}
+
+          <Button variant="outline" size="sm" onClick={downloadAttachment}>
+            <FileText className="w-4 h-4 mr-2" />
+            Baixar relatório de defeitos
+          </Button>
 
           <Button
             variant="outline"

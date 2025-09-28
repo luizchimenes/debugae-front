@@ -15,6 +15,7 @@ import {
   TrendingUp,
   PieChart as PieChartIcon,
   Calendar1,
+  Download,
 } from "lucide-react";
 import {
   BarChart,
@@ -38,6 +39,7 @@ import { format } from "date-fns";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
 import { UserBug } from "@/app/models/UserBug";
+import { toast } from "sonner";
 
 interface TimelineData {
   date: string;
@@ -193,6 +195,28 @@ const BugReport = () => {
     },
   };
 
+  const downloadPdf = async () => {
+    try {
+      setLoading(true);
+      const resp = await BugService.downloadCurrentUserReport();
+
+      const url = window.URL.createObjectURL(resp);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = 'anexo_' + (loggedUser?.firstName + '_relatorio' );
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Erro ao baixar anexo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
@@ -209,10 +233,10 @@ const BugReport = () => {
             <Calendar1 className="w-4 h-4 mr-2" />
             Filtrar Data
           </Button>
-          {/* <Button variant="outline" size="sm" onClick={exportToPDF}>
+          <Button variant="outline" size="sm" onClick={downloadPdf}>
             <Download className="w-4 h-4 mr-2" />
-            Exportar PDF
-          </Button> */}
+            Baixar PDF
+          </Button>
         </div>
       </div>
 

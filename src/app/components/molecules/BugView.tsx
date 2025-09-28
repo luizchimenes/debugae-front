@@ -33,7 +33,18 @@ import {
   Tag,
   KanbanIcon,
   ExternalLink,
+  TrashIcon,
 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 // import ChangeStatusModal from "../organism/ChangeStatusModal";
 import { Comment, CommentService } from "@/app/services/commentService";
 import { UserService } from "@/app/services/userService";
@@ -104,6 +115,19 @@ const BugView = ({ bugId }: BugViewProps) => {
   const [comments, setComments] = useState<Comment[] | undefined>([]);
 
   const loggedUser = useAtomValue(userAtom);
+
+  const manageTags = async (tag: string) => {
+    try {
+      setLoading(true)
+      await BugService.manageTagsAsync(bugId, tag);
+      await fetchAll();
+      toast.success("Tag gerenciada com sucesso.");
+    } catch {
+      toast.error("Erro ao gerenciar tags.");
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetchAll();
@@ -338,6 +362,25 @@ const BugView = ({ bugId }: BugViewProps) => {
     }
   }
 
+  const getActionText = (action: string): string => {
+    switch (action.toUpperCase()) {
+      case "CREATE":
+        return "Criado";
+      case "UPDATE":
+        return "Atualizado";
+      default:
+        return "-";
+    }
+  }
+
+  const getText = (column: string | null, value: string | null): string | null => {
+    if (column == null) return value;
+    if (column.toLowerCase() == "status") {
+      return getStatusText(value || "");
+    }
+    return value;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -405,6 +448,61 @@ const BugView = ({ bugId }: BugViewProps) => {
           </Button>
         </div>
       </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center dark:text-white">
+              <Tag className="w-5 h-5 mr-2 text-blue-400" />
+              Tags do Defeito
+            </CardTitle>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {bug.tags && bug.tags.length > 0 ? (
+                bug.tags.map((tag: string) => (
+                  <div
+                    key={tag}
+                    className="flex items-center bg-blue-50 border border-blue-300 rounded-lg px-3 py-1 text-blue-700 text-sm font-medium shadow-sm"
+                  >
+                    <span className="mr-2">{tag}</span>
+                    <button
+                      type="button"
+                      className="ml-1 px-1 py-0.5 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 border border-blue-200"
+                      onClick={() => manageTags(tag)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <span className="text-gray-400">Nenhuma tag cadastrada.</span>
+              )}
+            </div>
+            <form
+              className="flex items-center gap-2 mt-4"
+              onSubmit={e => {
+                e.preventDefault();
+                const input = e.currentTarget.elements.namedItem('newTag') as HTMLInputElement;
+                if (input && input.value.trim()) {
+                  manageTags(input.value.trim());
+                  input.value = '';
+                }
+              }}
+            >
+              <input
+                type="text"
+                name="newTag"
+                placeholder="Adicionar tag..."
+                className="border border-blue-300 rounded-lg px-3 py-1 text-blue-700 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+                autoComplete="off"
+              />
+              <button
+                type="submit"
+                className="px-2 py-1 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
+              >
+                Adicionar
+              </button>
+            </form>
+          </CardHeader>
+        </Card>
 
       {bug && (
         <ChangeStatusModal
@@ -799,18 +897,6 @@ const BugView = ({ bugId }: BugViewProps) => {
               <CommentsSection bugId={bugId} loggedUser={loggedUser} />
             )}
 
-            {activeTab === "history" && (
-              <BugHistoryTab history={logs} getStatusColor={getStatusColor} />
-            )}
-
-            {activeTab == "trello" && (
-              <div className="space-y-6">
-                {bug.trelloUserStories && bug.trelloUserStories.map((userStory) => (
-                  <PostIt key={userStory.defectId} userStory={userStory} />
-                ))}
-              </div>
-            )}
-
             {activeTab === "attachments" && (
               <div className="space-y-6">
                 {bug.attachment ? (
@@ -888,6 +974,50 @@ const BugView = ({ bugId }: BugViewProps) => {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab == "trello" && (
+              <div className="space-y-6">
+                {bug.trelloUserStories && bug.trelloUserStories.map((userStory) => (
+                  <PostIt key={userStory.defectId} userStory={userStory} />
+                ))}
+              </div>
+            )}
+
+            {activeTab == "history" && (
+              <div className="space-y-6">
+                <Table>
+                  <TableCaption>Histórico do defeito</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">Ação</TableHead>
+                      <TableHead>Campo atualizado</TableHead>
+                      <TableHead>Valor antigo</TableHead>
+                      <TableHead>Valor atual</TableHead>
+                      <TableHead>Atualizado por</TableHead>
+                      <TableHead>Atualizado em</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {bug.history.map((hs) => (
+                      <TableRow key={hs.createdAt?.toString() + hs.action}>
+                        <TableCell className="font-medium">{getActionText(hs.action)}</TableCell>
+                        <TableCell>{hs.updatedField}</TableCell>
+                        <TableCell>{getText(hs.updatedField, hs.oldValue)}</TableCell>
+                        <TableCell>{getText(hs.updatedField, hs.newValue)}</TableCell>
+                        <TableCell>{hs.contributor}</TableCell>
+                        <TableCell>{new Date(hs.createdAt).toLocaleString("pt-BR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </div>

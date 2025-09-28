@@ -194,5 +194,19 @@ export const BugService = {
     });
 
     return response.data;
+  },
+
+  manageTagsAsync: async (defectId: string, tag: string): Promise<any> => {
+    const response = await api.post(`/defects/tags`, { defectId: defectId, tagValue: tag });
+
+    return response.data;
+  },
+
+  downloadCurrentUserReport: async (): Promise<any> => {
+    const response = await api.get(`/reports/downloadUserPdfReport`, {
+      responseType: "blob",
+    });
+
+    return response.data;
   }
 };
