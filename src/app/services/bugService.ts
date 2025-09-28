@@ -15,6 +15,23 @@ import UpdateDefectStatusRequest from "../models/requests/updateDefectStatusRequ
 const BUGS_KEY = "bugs";
 
 export const BugService = {
+
+  updateDefectDetailsAsync: async (payload: {
+    defectId: string,
+    newDescription: string,
+    newEnvironment: number,
+    newSeverity: number,
+    newStatus: number,
+    newCategory: number,
+    newCurrentBehaviour: string,
+    newExpectedBehaviour: string,
+    newStackTrace: string,
+    newAssignedToContributorEmail: string
+  }): Promise<any> => {
+    const response = await api.patch('/defects/updateDefect', payload);
+    return response.data;
+  },
+
   getAllBugs: (): BugOld[] => {
     if (typeof window === "undefined") return [];
     const bugsJson = localStorage.getItem(BUGS_KEY);

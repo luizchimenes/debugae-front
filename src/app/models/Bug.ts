@@ -11,6 +11,7 @@ export interface Bug {
   responsibleContributor: {
     contributorId: string;
     contributorName: string;
+    contributorEmail: string;
   };
   details: {
     defectDescription: string;
@@ -39,6 +40,7 @@ export interface Bug {
   trelloUserStories: TrelloUserStory[];
   logStackTrace: string;
   tags: string[];
+  projectId: string;
 }
 
 export interface TrelloUserStory {

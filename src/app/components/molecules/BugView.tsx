@@ -45,7 +45,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-// import ChangeStatusModal from "../organism/ChangeStatusModal";
+import EditBugModal from "../organism/EditBugModal";
 import { Comment, CommentService } from "@/app/services/commentService";
 import { UserService } from "@/app/services/userService";
 import { ProjectService } from "@/app/services/projectService";
@@ -103,6 +103,7 @@ const PostIt = ({ userStory }: { userStory: TrelloUserStory }) => {
 
 
 const BugView = ({ bugId }: BugViewProps) => {
+  const [showEditModal, setShowEditModal] = useState(false);
   const [bug, setBug] = useState<Bug | undefined>();
   const [contributor, setContributor] = useState<UserModel | undefined>();
   const [creator, setCreator] = useState<UserModel | undefined>();
@@ -340,6 +341,11 @@ const BugView = ({ bugId }: BugViewProps) => {
     fetchAll();
   };
 
+  const handleBugEdited = (updatedBug: Bug) => {
+    setBug(updatedBug);
+    fetchAll();
+  };
+
   const downloadAttachment = async () => {
     try {
       setLoading(true);
@@ -379,6 +385,49 @@ const BugView = ({ bugId }: BugViewProps) => {
       return getStatusText(value || "");
     }
     return value;
+  }
+
+  const getEnvironmentText = (environment: string): string => {
+    switch (environment) {
+      case "Production":
+        return "Produção";
+      case "Development":
+        return "Desenvolvimento";
+      case "Testing":
+        return "Homologação";
+      default:
+        return "Não definido";
+    }
+  }
+
+  const getCategoryText = (category: string): string => {
+    switch (category) {
+      case "Functional":
+        return "Funcional";
+      case "Performance":
+        return "Performance";
+      case "Interface":
+        return "Interface";
+      case "Improvement":
+        return "Melhoria";
+      default:
+        return "Não definido";
+    }
+  }
+
+  const getUpdatedField = (column: string | null): string | null => {
+    if (column == null) return column;
+    if (column.toLowerCase() == "status") return "Status";
+    if (column.toLowerCase() == "defectseverity") return "Severidade";
+    if (column.toLowerCase() == "defectenvironment") return "Ambiente";
+    if (column.toLowerCase() == "defectsummary") return "Resumo";
+    if (column.toLowerCase() == "description") return "Descrição";
+    if (column.toLowerCase() == "defectcategory") return "Categoria";
+    if (column.toLowerCase() == "errorlog") return "Log de erro";
+    if (column.toLowerCase() == "actualbehaviour") return "Comportamento atual";
+    if (column.toLowerCase() == "expectedbehaviour") return "Comportamento esperado";
+    if (column.toLowerCase() == "assignedtocontributorid") return "Usuário responsável";
+    return column;
   }
 
   if (loading) {
@@ -428,6 +477,15 @@ const BugView = ({ bugId }: BugViewProps) => {
           >
             <Edit3 className="w-4 h-4 mr-2" />
             Alterar Status
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowEditModal(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Edit3 className="w-4 h-4 mr-2" />
+            Editar Defeito
           </Button>
           <Button
             variant="default"
@@ -513,6 +571,15 @@ const BugView = ({ bugId }: BugViewProps) => {
           getStatusColor={getStatusColor}
         />
       )} 
+
+      {bug && (
+        <EditBugModal
+          show={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          bug={bug}
+          onBugUpdated={handleBugEdited}
+        />
+      )}
 
       {bug && (
         <TrelloIntegrationModal
@@ -629,7 +696,7 @@ const BugView = ({ bugId }: BugViewProps) => {
               <div>
                 <CardDescription>Categoria</CardDescription>
                 <CardTitle className="text-2xl text-purple-600 dark:text-purple-400">
-                  {bug.defectCategory || "Não definida"}
+                  {getCategoryText(bug.defectCategory) || "Não definida"}
                 </CardTitle>
               </div>
               <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
@@ -752,7 +819,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                       Ambiente
                     </h3>
                     <p className="text-gray-800 dark:text-gray-200 bg-blue-50 dark:bg-gray-900 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
-                      {bug.details.defectEnvironment}
+                      {getEnvironmentText(bug.details.defectEnvironment)}
                     </p>
                   </div>
                 )}
@@ -807,7 +874,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                       Categoria
                     </p>
                     <p className="font-semibold text-gray-900 dark:text-white">
-                      {bug.defectCategory || "Não definida"}
+                      {getCategoryText(bug.defectCategory) || "Não definida"}
                     </p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
@@ -1003,7 +1070,7 @@ const BugView = ({ bugId }: BugViewProps) => {
                     {bug.history.map((hs) => (
                       <TableRow key={hs.createdAt?.toString() + hs.action}>
                         <TableCell className="font-medium">{getActionText(hs.action)}</TableCell>
-                        <TableCell>{hs.updatedField}</TableCell>
+                        <TableCell>{getUpdatedField(hs.updatedField)}</TableCell>
                         <TableCell>{getText(hs.updatedField, hs.oldValue)}</TableCell>
                         <TableCell>{getText(hs.updatedField, hs.newValue)}</TableCell>
                         <TableCell>{hs.contributor}</TableCell>
