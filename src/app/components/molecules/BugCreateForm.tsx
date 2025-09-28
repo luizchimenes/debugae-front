@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { Button, Input, Label } from "../atoms";
 import {
   Card,
@@ -18,21 +18,15 @@ import {
   SelectValue,
 } from "../atoms/SelectComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
-import { UserService } from "@/app/services/userService";
 import { ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
 import { BugService } from "@/app/services/bugService";
-import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { StatusDefeito } from "@/app/enums/StatusDefeito";
-import { findSimilarBugs } from "@/app/services/duplicatedService";
+import { Check, AlertCircle, Loader2, CircleHelp } from "lucide-react";
 import DuplicatedBugModal, { DuplicatedBug } from "../organism/DuplicatedBugModal";
-import User from "@/app/models/User";
-import { useAtomValue } from "jotai";
-import { userAtom } from "@/app/stores/atoms/userAtom";
-import { Project } from "@/app/models/Project";
 import { UserProject, UserProjectContributors } from "@/app/models/UserProject";
 import FindDuplicatedDefectRequest from "@/app/models/requests/findDuplicatesDefectsRequest";
 import { DefectDuplicatesViewModel, FindDefectDuplicatesResponse } from "@/app/models/responses/getDefectDuplicatedResponse";
+import { type DriveStep, useDriverTour } from "@/app/hooks/useDriverTour";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_SUMMARY_LENGTH = 100;
@@ -63,7 +57,6 @@ const BugCreateForm = () => {
   const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
   const [duplicatedBugIds, setDuplicatedBugIds] = useState<string[]>([]);
 
-  const user = useAtomValue(userAtom);
 
   useEffect(() => {
     try {
@@ -105,6 +98,122 @@ const BugCreateForm = () => {
     "4": 21,
     "5": 30,
   };
+
+  const { startTour } = useDriverTour((): DriveStep[] => [
+    {
+      element: "#projectForm",
+      popover: {
+        title: "Projeto",
+        description: "Selecione o projeto em que o defeito ocorre.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugResponsibleForm",
+      popover: {
+        title: "Responsável",
+        description: "Selecione o usuário que ficará responsável pela resolução do defeito.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugSummaryForm",
+      popover: {
+        title: "Sumário do defeito",
+        description: "Informe um título curto e objetivo para o defeito.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugDescriptionForm",
+      popover: {
+        title: "Descrição do defeito",
+        description: "Explique detalhadamente o problema encontrado.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugEnvironmentForm",
+      popover: {
+        title: "Ambiente",
+        description: "Escolha onde o defeito foi encontrado (produção, homologação, etc.).",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugSeverityForm",
+      popover: {
+        title: "Severidade",
+        description: "Informe o impacto do defeito (muito alta, alta, média...).",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugPriorityForm",
+      popover: {
+        title: "Prioridade",
+        description: "Defina a urgência de correção deste defeito.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugVersionForm",
+      popover: {
+        title: "Versão",
+        description: "Selecione a versão do sistema onde o defeito ocorre.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugCategoryForm",
+      popover: {
+        title: "Categoria",
+        description: "Informe o tipo de problema (funcional, interface, performance...).",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugCurrentBehaviorForm",
+      popover: {
+        title: "Comportamento atual",
+        description: "Descreva como o sistema está se comportando atualmente.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugExpectedBehaviorForm",
+      popover: {
+        title: "Comportamento esperado",
+        description: "Descreva como o sistema deveria se comportar.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugStackTraceForm",
+      popover: {
+        title: "Log de erro",
+        description: "Cole aqui o log ou stack trace que ajuda a identificar o problema.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#bugFileForm",
+      popover: {
+        title: "Anexo",
+        description: "Adicione arquivos ou prints que ajudem a explicar o defeito.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#saveProjectBtnForm",
+      popover: {
+        title: "Salvar defeito",
+        description: "Clique aqui para finalizar o cadastro do defeito.",
+        side: "top",
+      },
+    },
+  ]);
+
 
   const validateStep1 = () => {
     const newErrors: { [key: string]: string } = {};
@@ -414,9 +523,20 @@ const BugCreateForm = () => {
 
   return (
     <form className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-        Cadastro de novo defeito
-      </h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+          Cadastro de novo defeito
+        </h2>
+        <Button
+          type="button"
+          onClick={startTour}
+          variant="outline"
+          className="group self-start sm:self-auto inline-flex items-center gap-2 rounded-full border-primary text-primary shadow-sm transition-all hover:bg-primary hover:text-white"
+        >
+          <CircleHelp className="w-4 h-4 transition-transform group-hover:-rotate-6" />
+          Guia Interativo
+        </Button>
+      </div>
       <hr />
       <div className="flex justify-between items-center my-4 relative px-4">
         {steps.map((step) => (
@@ -462,7 +582,7 @@ const BugCreateForm = () => {
           </CardHeader>
           <hr className="my-1 border-gray-200 dark:border-gray-700" />
           <div className="flex w-full gap-4 flex-col">
-            <div className="flex flex-col space-y-1.5 w-full">
+            <div id="projectForm" className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="projectId">Projeto</Label>
               <Select
                 onValueChange={(value) => handleInputChange("projectId", value)}
@@ -497,7 +617,7 @@ const BugCreateForm = () => {
                 </p>
               )}
             </div>
-            <div className="flex flex-col space-y-1.5 w-full">
+            <div id="bugResponsibleForm" className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="contributorId">Responsável</Label>
               <Select
                 onValueChange={(value) =>
@@ -578,7 +698,7 @@ const BugCreateForm = () => {
           </CardHeader>
           <hr className="my-1 border-gray-200 dark:border-gray-700" />
           <div className="grid w-full gap-4">
-            <div className="flex flex-col space-y-1.5 w-full">
+            <div id="bugSummaryForm" className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="bugSummary">Sumário do defeito</Label>
               <Input
                 id="bugSummary"
@@ -605,7 +725,7 @@ const BugCreateForm = () => {
                 </p>
               )}
             </div>
-            <div className="flex flex-col space-y-1.5 w-full">
+            <div id="bugDescriptionForm" className="flex flex-col space-y-1.5 w-full">
               <Label htmlFor="bugDescription">Descrição do Defeito</Label>
               <Textarea
                 id="bugDescription"
@@ -633,7 +753,7 @@ const BugCreateForm = () => {
           </div>
 
           <div className="mt-4 grid w-full gap-4 md:grid-cols-2">
-            <div className="flex flex-col space-y-2 w-full">
+            <div id="bugEnvironmentForm" className="flex flex-col space-y-2 w-full">
               <Label htmlFor="bugEnvironment">Ambiente</Label>
               <Select
                 onValueChange={(value) =>
@@ -680,7 +800,7 @@ const BugCreateForm = () => {
               )}
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
+            <div id="bugSeverityForm" className="flex flex-col space-y-2 w-full">
               <Label htmlFor="bugSeverity">Severidade</Label>
               <Select
                 onValueChange={(value) => handleInputChange("severity", value)}
@@ -737,7 +857,7 @@ const BugCreateForm = () => {
               )}
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
+            <div id="bugPriorityForm" className="flex flex-col space-y-2 w-full">
               <Label htmlFor="priority">Prioridade</Label>
               <Select
                 onValueChange={(value) => handleInputChange("priority", value)}
@@ -794,7 +914,7 @@ const BugCreateForm = () => {
               )}
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
+            <div id="bugVersionForm" className="flex flex-col space-y-2 w-full">
               <Label htmlFor="bugVersion">Versão</Label>
               <Select
                 onValueChange={(value) => handleInputChange("version", value)}
@@ -851,7 +971,7 @@ const BugCreateForm = () => {
               )}
             </div>
 
-            <div className="flex flex-col space-y-2 w-full md:col-span-2">
+            <div id="bugCategoryForm" className="flex flex-col space-y-2 w-full md:col-span-2">
               <Label htmlFor="bugCategory">Categoria</Label>
               <Select
                 onValueChange={(value) => handleInputChange("category", value)}
@@ -915,7 +1035,7 @@ const BugCreateForm = () => {
           </CardHeader>
           <hr className="my-1 border-gray-200 dark:border-gray-700" />
           <div className="grid w-full gap-4">
-            <div className="flex flex-col space-y-1.5">
+            <div id="bugCurrentBehaviorForm" className="flex flex-col space-y-1.5">
               <Label htmlFor="bugCurrentBehavior">Comportamento atual</Label>
               <Textarea
                 id="bugCurrentBehavior"
@@ -927,7 +1047,7 @@ const BugCreateForm = () => {
               />
             </div>
 
-            <div className="flex flex-col space-y-1.5">
+            <div id="bugExpectedBehaviorForm" className="flex flex-col space-y-1.5">
               <Label htmlFor="bugExpectedBehavior">
                 Comportamento esperado
               </Label>
@@ -941,7 +1061,7 @@ const BugCreateForm = () => {
               />
             </div>
 
-            <div className="flex flex-col space-y-1.5">
+            <div id="bugStackTraceForm" className="flex flex-col space-y-1.5">
               <Label htmlFor="bugStackTrace">Log de erro</Label>
               <Textarea
                 id="bugStackTrace"
@@ -953,7 +1073,7 @@ const BugCreateForm = () => {
               />
             </div>
 
-            <div className="flex flex-col space-y-1.5">
+            <div id="bugFileForm" className="flex flex-col space-y-1.5">
               <Label htmlFor="bugFile">Anexo</Label>
               <Input id="bugFile" type="file" onChange={handleFileChange} />
             </div>
@@ -993,6 +1113,7 @@ const BugCreateForm = () => {
         ) : (
           <Button
             type="submit"
+            id="saveProjectBtnForm"
             onClick={handleSubmit}
             disabled={isLoading}
             className="bg-green-600 hover:bg-green-700 text-white ml-auto"

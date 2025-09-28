@@ -1,11 +1,10 @@
-"use client";
+﻿"use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Input } from "@/app/components/atoms/InputComponent";
 import { Label } from "@/app/components/atoms/LabelComponent";
 import { Textarea } from "../atoms/TextAreaComponent";
 import { ScrollArea } from "../atoms/ScrollAreaComponent";
-import { UserService } from "@/app/services/userService";
 import { Button } from "../atoms";
 import { ProjectService } from "@/app/services/projectService";
 import { toast } from "sonner";
@@ -17,11 +16,12 @@ import {
   Users as UsersIcon,
   Plus,
   X,
+  CircleHelp,
 } from "lucide-react";
-import User from "@/app/models/User";
 import { useAtomValue } from "jotai";
 import { userAtom } from "@/app/stores/atoms/userAtom";
 import CreateProjectRequest from "@/app/models/requests/createProjectRequest";
+import { useDriverTour, type DriveStep } from "@hooks/useDriverTour";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -88,6 +88,42 @@ const ProjectCreateForm = () => {
     }
   };
 
+  const { startTour } = useDriverTour((): DriveStep[] => [
+    {
+      element: "#projectNameField",
+      popover: {
+        title: "Nome do projeto",
+        description: "Digite aqui o nome do projeto que você deseja criar.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#projectDescriptionField",
+      popover: {
+        title: "Descrição do projeto",
+        description: "Explique brevemente o propósito do projeto.",
+        side: "bottom",
+      },
+    },
+    {
+      element: "#addContributor",
+      popover: {
+        title: "Adicionar colaboradores",
+        description:
+          "Inclua os e-mails das pessoas que vão participar do projeto.",
+        side: "top",
+      },
+    },
+    {
+      element: "#saveProjectBtn",
+      popover: {
+        title: "Salvar projeto",
+        description: "Clique aqui para finalizar o cadastro do projeto.",
+        side: "top",
+      },
+    },
+  ]);
+
   const handleSave = async () => {
     setIsLoading(true);
     try {
@@ -153,9 +189,20 @@ const ProjectCreateForm = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-        Cadastro de novo Projeto
-      </h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+          Cadastro de novo Projeto
+        </h2>
+        <Button
+          type="button"
+          onClick={startTour}
+          variant="outline"
+          className="group self-start sm:self-auto inline-flex items-center gap-2 rounded-full border-primary text-primary shadow-sm transition-all hover:bg-primary hover:text-white"
+        >
+          <CircleHelp className="w-4 h-4 transition-transform group-hover:-rotate-6" />
+          Guia Interativo
+        </Button>
+      </div>
       <hr />
       {currentStep === 1 && (
         <div className="mb-4">
@@ -220,7 +267,7 @@ const ProjectCreateForm = () => {
 
       {currentStep === 1 && (
         <form className="flex flex-col gap-4 animate-fade-in">
-          <div className="flex flex-col space-y-1.5 w-full">
+          <div id="projectNameField" className="flex flex-col space-y-1.5 w-full">
             <Label htmlFor="projectName">Nome do Projeto</Label>
             <Input
               id="projectName"
@@ -242,7 +289,7 @@ const ProjectCreateForm = () => {
               </p>
             )}
           </div>
-          <div className="grid w-full gap-4">
+          <div id="projectDescriptionField" className="grid w-full gap-4">
             <Label htmlFor="projectDescription">Descrição do Projeto</Label>
             <Textarea
               id="projectDescription"
@@ -277,7 +324,7 @@ const ProjectCreateForm = () => {
           {" "}
           <div className="grid md:grid-cols-2 gap-6">
             {" "}
-            <div>
+            <div id="addContributor">
               <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
                 <UserIcon className="w-5 h-5 mr-2 text-primary dark:text-primary-400" />
                 Usuários Disponíveis
@@ -334,7 +381,7 @@ const ProjectCreateForm = () => {
                         >
                           <div>
                             <div className="font-medium text-gray-800 dark:text-white">
-                              {email} 
+                              {email}
                             </div>
                           </div>
                           <Button
@@ -381,6 +428,7 @@ const ProjectCreateForm = () => {
             type="button"
             onClick={handleSave}
             disabled={isLoading}
+            id="saveProjectBtn"
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             {isLoading ? (
