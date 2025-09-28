@@ -1045,7 +1045,7 @@ const BugView = ({ bugId }: BugViewProps) => {
             )}
 
             {activeTab == "trello" && (
-              <div className="space-y-6">
+              <div className="flex flex-wrap gap-4">
                 {bug.trelloUserStories && bug.trelloUserStories.map((userStory) => (
                   <PostIt key={userStory.defectId} userStory={userStory} />
                 ))}
