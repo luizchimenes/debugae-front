@@ -189,7 +189,7 @@ const EditBugModal: React.FC<EditBugModalProps> = ({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm backdrop-brightness-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-5xl mx-4">
+  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 md:p-6 w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-2 sm:mx-4 overflow-y-auto max-h-[90vh]">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
             Editar Defeito
