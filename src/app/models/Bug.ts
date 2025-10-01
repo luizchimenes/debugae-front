@@ -41,6 +41,7 @@ export interface Bug {
   logStackTrace: string;
   tags: string[];
   projectId: string;
+  isCurrentUserOnMailLetter: boolean;
 }
 
 export interface TrelloUserStory {

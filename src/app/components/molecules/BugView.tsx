@@ -11,6 +11,7 @@ import { ScrollArea } from "../atoms/ScrollAreaComponent";
 import { Button } from "../atoms";
 import { BugService } from "@/app/services/bugService";
 import { Bug, BugOld, TrelloUserStory } from "@/app/models/Bug";
+import { NotificationService } from "@/app/services/notificationService";
 import {
   Bug as BugIcon,
   Calendar,
@@ -148,6 +149,24 @@ const BugView = ({ bugId }: BugViewProps) => {
       console.error("Erro ao carregar dados do defeito:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [mailLoading, setMailLoading] = useState(false);
+
+  const handleToggleMailLetter = async () => {
+    if (!bug) return;
+    setMailLoading(true);
+    try {
+      await NotificationService.addOrRemoveToMailLettersAsync(bug.defectId);
+      setBug(prev => prev ? { ...prev, isCurrentUserOnMailLetter: !prev.isCurrentUserOnMailLetter } : prev);
+      toast.success(
+        !(bug.isCurrentUserOnMailLetter) ? "Agora você está acompanhando este defeito." : "Você parou de acompanhar este defeito."
+      );
+    } catch {
+      toast.error("Erro ao atualizar acompanhamento do defeito.");
+    } finally {
+      setMailLoading(false);
     }
   };
 
@@ -459,6 +478,20 @@ const BugView = ({ bugId }: BugViewProps) => {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        {bug && (
+          <button
+            className={`px-4 py-2 rounded text-white text-sm font-medium transition-colors focus:outline-none ${bug.isCurrentUserOnMailLetter ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} flex items-center gap-2`}
+            onClick={handleToggleMailLetter}
+            disabled={mailLoading}
+          >
+            {mailLoading && (
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+            )}
+            {bug.isCurrentUserOnMailLetter ? 'Parar de acompanhar defeito' : 'Acompanhar defeito'}
+          </button>
+        )}
+      </div>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">

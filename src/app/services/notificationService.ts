@@ -10,5 +10,9 @@ export const NotificationService = {
 
   markAsReadAsync: async (notificationId: string): Promise<void> => {
     await api.post('/notifications/markAsRead', { notificationId });
+  },
+
+  addOrRemoveToMailLettersAsync: async (defectId: string): Promise<void> => {
+    await api.patch('/defects/addOrRemoveToMailLetter', { defectId });
   }
 }
