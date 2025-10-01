@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Mail } from "lucide-react";
+import { Check, ExternalLink, ExternalLinkIcon, Eye, Link, Mail } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ import { userAtom } from "@/app/stores/atoms/userAtom";
 import { LoadingOverlay } from "./LoadingPage";
 import { NotificationService } from "@/app/services/notificationService";
 import { toast } from "sonner";
+import { redirect, useRouter } from "next/navigation";
 
 export interface Notication {
   id: string;
@@ -36,6 +37,7 @@ const NotificationCard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [user, ]= useAtom(userAtom);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
+  const GUID_REGEX = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
 
   useEffect(() => {
     if (!user?.id) return;
@@ -80,36 +82,17 @@ const NotificationCard = () => {
     }
   };
 
-  const getActionText = (acao?: AcaoRealizada): string => {
-    const actionMap: Record<AcaoRealizada, string> = {
-      [AcaoRealizada.CRIACAO]: "Defeito criado",
-      [AcaoRealizada.EXCLUSAO]: "Defeito excluído",
-      [AcaoRealizada.ATUALIZACAO_STATUS]: "Status alterado",
-      [AcaoRealizada.COMENTARIO_ADICIONADO]: "Comentário adicionado",
-      [AcaoRealizada.FECHAMENTO]: "Defeito fechado",
-      [AcaoRealizada.REABERTURA]: "Defeito reaberto",
-    };
-
-    if (!acao) return "Ação realizada";
-
-    return actionMap[acao] ?? "Ação realizada";
-  };
-
-  const formatDate = (date: Date): string => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 60) {
-      return `${diffMins}m atrás`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h atrás`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d atrás`;
-    } else {
-      return date.toLocaleDateString("pt-BR");
+  const router = useRouter();
+  
+  const handleRedirect = async (path: string) => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      router.push(path);
+    } catch (err) {
+      console.error("Erro ao redirecionar:", err);
+      toast.error("Erro ao redirecionar", {
+        description: "Ocorreu um problema ao navegar. Tente novamente.",
+      });
     }
   };
 
@@ -117,6 +100,11 @@ const NotificationCard = () => {
     return (
       <LoadingOverlay />
     );
+  }
+
+  function extractFirstGuid(text: string): string | null {
+    const m = text.match(GUID_REGEX);
+    return m ? m[0] : null;
   }
 
   return (
@@ -150,9 +138,6 @@ const NotificationCard = () => {
                   <p className="text-sm text-gray-900 dark:text-white font-medium">
                     Notificação
                   </p>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
-                    {formatDate(new Date(notification.createdAt))}
-                  </span>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-300 break-words">
                   {notification.content}
@@ -160,28 +145,36 @@ const NotificationCard = () => {
                 {!notification.isRead && (
                   <div className="w-2 h-2 bg-red-500 rounded-full absolute right-2 top-1/2 transform -translate-y-1/2"></div>
                 )}
-                {!notification.isRead && (
+                <div className="flex gap-1 mt-1 ml-auto w-fit">
                   <button
-                    className="mt-2 self-end px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition flex items-center gap-2"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      await markAsRead(notification.id);
-                    }}
-                    disabled={loadingIds.includes(notification.id)}
+                    onClick={() =>
+                      handleRedirect(`/www/bugs/view/${extractFirstGuid(notification.content)}`)
+                    }
+                    className="w-7 h-7 border border-gray-300 rounded-md hover:bg-gray-100 transition flex items-center justify-center"
                   >
-                    {loadingIds.includes(notification.id) ? (
-                      <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-                    ) : (
-                      <Check className="w-4 h-4 text-white" />
-                    )}
+                    <ExternalLinkIcon className="w-4 h-4" />
                   </button>
-                )}
-                {notification.isRead && (
-                  <div className="mt-2 self-end px-2 py-1 text-xs bg-green-600 text-white rounded flex items-center gap-2">
-                    <Check className="w-4 h-4 text-white" />
-                    Lida
-                  </div>
-                )}
+                  {!notification.isRead ? (
+                    <button
+                      className="w-7 h-7 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center justify-center"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await markAsRead(notification.id);
+                      }}
+                      disabled={loadingIds.includes(notification.id)}
+                    >
+                      {loadingIds.includes(notification.id) ? (
+                        <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                      ) : (
+                        <Check className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                  ) : (
+                    <div className="w-7 h-7 bg-green-600 text-white rounded-md flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </div>
               </div>
             </DropdownMenuItem>
           ))
