@@ -19,6 +19,7 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  FilterFn,
 } from "@tanstack/react-table";
 import React from "react";
 import { Button, Input } from "../atoms";
@@ -54,6 +55,21 @@ const statusOptions = [
   { value: "Aguardando Usuário", label: "Aguardando Usuário" },
   { value: "Novo", label: "Novo" }
 ];
+
+
+const tagsFilter: FilterFn<any> = (row, columnId, filterValue) => {
+  const tags = row.getValue(columnId);
+  if (!filterValue) return true;
+  if (Array.isArray(tags)) {
+    return tags.some((tag) =>
+      tag.toLowerCase().includes(filterValue.toLowerCase())
+    );
+  }
+  if (typeof tags === "string") {
+    return tags.toLowerCase().includes(filterValue.toLowerCase());
+  }
+  return false;
+};
 
 const severityOptions = [
   { value: "P1", label: "Muito alta (P1)" },
@@ -106,6 +122,7 @@ export function BugDataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
+    filterFns: { tagsFilter },
     state: {
       sorting,
       columnFilters,
@@ -233,6 +250,20 @@ export function BugDataTable<TData, TValue>({
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Tags
+                </label>
+                <Input
+                  placeholder="Filtrar por tags..."
+                  value={getFilterValue("tags")}
+                  onChange={(event) =>
+                    setFilterValue("tags", event.target.value)
+                  }
+                  className="h-10 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 dark:focus:border-purple-400 dark:focus:ring-purple-400"
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
@@ -310,34 +341,39 @@ export function BugDataTable<TData, TValue>({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row, index) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={`
-                    cursor-pointer transition-all duration-200
-                    hover:bg-purple-50 hover:shadow-sm dark:hover:bg-purple-900/20
-                    ${index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50/50 dark:bg-gray-800/50"}
-                    ${row.getIsSelected() ? "bg-purple-100 dark:bg-purple-900/30 border-l-4 border-l-purple-500 dark:border-l-purple-400" : ""}
-                  `}
-                    onClick={() => {
-                      const bugId = (row.original as { id: string }).id;
-                      handleRedirect(`/www/bugs/view/${bugId}`);
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r border-gray-100 dark:border-gray-700 last:border-r-0 py-4 text-gray-900 dark:text-gray-100"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                table.getRowModel().rows.map((row, index) => {
+                  const original = row.original as any;
+                  const expiration = original.expirationDate ? new Date(original.expirationDate) : null;
+                  const isExpired = expiration && expiration < new Date();
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      className={`
+                        cursor-pointer transition-all duration-200
+                        hover:bg-purple-50 hover:shadow-sm dark:hover:bg-purple-900/20
+                        ${isExpired ? "bg-[#fffae5] dark:bg-yellow-900/30" : index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50/50 dark:bg-gray-800/50"}
+                        ${row.getIsSelected() ? "bg-purple-100 dark:bg-purple-900/30 border-l-4 border-l-purple-500 dark:border-l-purple-400" : ""}
+                      `}
+                      onClick={() => {
+                        const bugId = (original as { id: string }).id;
+                        handleRedirect(`/www/bugs/view/${bugId}`);
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className="border-r border-gray-100 dark:border-gray-700 last:border-r-0 py-4 text-gray-900 dark:text-gray-100"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell

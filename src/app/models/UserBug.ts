@@ -11,4 +11,5 @@ export interface UserBug {
   createdAt: Date;
   category: string;
   project: ProjectBug;
+  tags: string[];
 }

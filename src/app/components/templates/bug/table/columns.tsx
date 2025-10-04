@@ -12,10 +12,22 @@ import {
 import { Project } from "@/app/models/Project";
 import { UserBug } from "@/app/models/UserBug";
 import { ProjectService } from "@/app/services/projectService";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
 
+export const tagsFilter: FilterFn<UserBug> = (row, columnId, filterValue) => {
+  const tags = row.getValue(columnId);
+  if (!filterValue) return true;
+  if (Array.isArray(tags)) {
+    return tags.some((tag) =>
+      tag.toLowerCase().includes(filterValue.toLowerCase())
+    );
+  }
+  if (typeof tags === "string") {
+    return tags.toLowerCase().includes(filterValue.toLowerCase());
+  }
+  return false;
+};
 
 export const columns: ColumnDef<UserBug>[] = [
   {
@@ -55,8 +67,8 @@ export const columns: ColumnDef<UserBug>[] = [
     ),
   },
   {
-    accessorFn: (row) => row.project?.projectName, // pega direto do objeto
-    id: "projectName", // id único para a coluna
+    accessorFn: (row) => row.project?.projectName, 
+    id: "projectName", 
     header: "Projeto",
     cell: ({ row }) => {  
       return <div className="capitalize">{row.original.project?.projectName}</div>;
@@ -83,6 +95,18 @@ export const columns: ColumnDef<UserBug>[] = [
       const value = row.getValue("expirationDate") as string;
       const formatted = value
         ? new Date(value).toLocaleDateString("pt-BR")
+        : "";
+      return <div className="capitalize">{formatted}</div>;
+    },
+  },
+  {
+    accessorKey: "tags",
+    header: "Tags",
+    filterFn: tagsFilter,
+    cell: ({ row }) => {
+      const value = row.getValue("tags");
+      const formatted = value
+        ? (Array.isArray(value) ? value : [value]).join(", ")
         : "";
       return <div className="capitalize">{formatted}</div>;
     },

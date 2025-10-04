@@ -39,12 +39,9 @@ const BugListTemplate = () => {
       const data = await BugService.getAllBugsByUserAsync()
       data.map((bug) => {
         bug.status = getStatusText(bug.status);
-        console.log('new status ', bug.status)
       })
       setData(data);
     }
-
-    console.log(data)
 
     fetchBugs();
 

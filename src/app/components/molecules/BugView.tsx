@@ -481,7 +481,7 @@ const BugView = ({ bugId }: BugViewProps) => {
       <div className="flex justify-end">
         {bug && (
           <button
-            className={`px-4 py-2 rounded text-white text-sm font-medium transition-colors focus:outline-none ${bug.isCurrentUserOnMailLetter ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} flex items-center gap-2`}
+            className={`px-4 py-2 rounded text-white text-sm font-medium transition-colors focus:outline-none ${bug.isCurrentUserOnMailLetter ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700 text-white'} flex items-center gap-2`}
             onClick={handleToggleMailLetter}
             disabled={mailLoading}
           >
@@ -527,7 +527,7 @@ const BugView = ({ bugId }: BugViewProps) => {
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             <Trello className="w-4 h-4 mr-2" />
-            Integrar com Trello
+            Adicionar observação no Trello
           </Button>
           {/* <Button variant="outline" size="sm">
             <Settings className="w-4 h-4 mr-2" />
