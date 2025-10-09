@@ -9,6 +9,7 @@ import { GetProjectDetailsResponse } from "../models/responses/getProjectDetails
 import { UpdateProjectRequest } from "../models/requests/updateProjectRequest";
 import { UpdateProjectResponse } from "../models/responses/updateProjectResponse";
 import { ManageContributorsRequest } from "../models/requests/manageContributorsRequest";
+import { ProjectReportResponse } from "../models/responses/projectReportResponse";
 
 const PROJECTS_KEY = "projects";
 
@@ -122,5 +123,25 @@ export const ProjectService = {
     });
 
     return response.data;
+  },
+
+  fetchProjectReportDataAsync: async (
+    projectId: string,
+    initialDate: string | undefined | null,
+    finalDate: string | undefined | null
+  ): Promise<ProjectReportResponse> => {
+    const params: Record<string, string> = { ProjectId: projectId };
+
+    if (initialDate && initialDate.trim() !== "") {
+      const isoStart = new Date(`${initialDate}T00:00:00`).toISOString();
+      params.InitialDate = isoStart;
+    }
+    if (finalDate && finalDate.trim() !== "") {
+      const isoEnd = new Date(`${finalDate}T23:59:59.999`).toISOString();
+      params.FinalDate = isoEnd;
+    }
+
+    const response = await api.post(`/reports/getProjectDefectsReport`, null, { params });
+    return response.data as ProjectReportResponse;
   }
 };

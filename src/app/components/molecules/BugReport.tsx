@@ -33,7 +33,6 @@ import {
 import { Button, Card, CardHeader, CardTitle } from "../atoms";
 import { CardContent, CardDescription } from "../atoms/CardComponent";
 import { BugService } from "@/app/services/bugService";
-import { BugOld as BugModel } from "@/app/models/Bug";
 import { StatusDefeito } from "@/app/enums/StatusDefeito";
 import { format } from "date-fns";
 import { useAtomValue } from "jotai";

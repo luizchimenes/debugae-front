@@ -27,6 +27,7 @@ import {
   XCircle,
   RefreshCw,
   FileText,
+  BarChart3,
 } from "lucide-react";
 import ProjectEditModal from "../organism/ProjectChangeModal";
 import { useRouter } from "next/navigation";
@@ -291,6 +292,15 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
           <Button variant="outline" size="sm" onClick={downloadAttachment}>
             <FileText className="w-4 h-4 mr-2" />
             Baixar relatório de defeitos
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/www/reports/project-report/${project.projectId}`)}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Relatório do Projeto
           </Button>
 
           <Button
