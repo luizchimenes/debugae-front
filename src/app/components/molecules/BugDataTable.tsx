@@ -352,7 +352,11 @@ export function BugDataTable<TData, TValue>({
                       className={`
                         cursor-pointer transition-all duration-200
                         hover:bg-purple-50 hover:shadow-sm dark:hover:bg-purple-900/20
-                        ${isExpired ? "bg-[#fffae5] dark:bg-yellow-900/30" : index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50/50 dark:bg-gray-800/50"}
+                        ${isExpired
+                          ? "bg-red-50/80 dark:bg-red-900/20 border-l-4 border-l-red-500 dark:border-l-red-400"
+                          : index % 2 === 0
+                            ? "bg-white dark:bg-gray-800"
+                            : "bg-gray-50/50 dark:bg-gray-800/50"}
                         ${row.getIsSelected() ? "bg-purple-100 dark:bg-purple-900/30 border-l-4 border-l-purple-500 dark:border-l-purple-400" : ""}
                       `}
                       onClick={() => {

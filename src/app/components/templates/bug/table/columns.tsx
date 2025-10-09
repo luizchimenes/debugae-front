@@ -93,10 +93,23 @@ export const columns: ColumnDef<UserBug>[] = [
     header: "Validade",
     cell: ({ row }) => {
       const value = row.getValue("expirationDate") as string;
-      const formatted = value
-        ? new Date(value).toLocaleDateString("pt-BR")
-        : "";
-      return <div className="capitalize">{formatted}</div>;
+      const dateObj = value ? new Date(value) : null;
+      const isExpired = dateObj ? dateObj < new Date() : false;
+      const formatted = dateObj ? dateObj.toLocaleDateString("pt-BR") : "";
+      return (
+        <div className="capitalize flex items-center gap-2">
+          <span
+            className={isExpired ? "text-red-600 dark:text-red-400 font-semibold" : ""}
+          >
+            {formatted || "-"}
+          </span>
+          {isExpired && (
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+              Expirado
+            </span>
+          )}
+        </div>
+      );
     },
   },
   {
