@@ -1,53 +1,89 @@
 import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
-import { Comment, CommentService } from "@/app/services/commentService";
-import { UserService } from "@/app/services/userService";
 import { UtilService } from "@/app/services/utilService";
 import { Button } from "../atoms";
 import User from "@/app/models/User";
+import { BugService } from "@/app/services/bugService";
 
-type CommentWithAuthor = Comment & {
-  author?: User;
+type LocalComment = {
+  id: string;
+  bugId: string;
+  authorId: string;
+  content: string;
+  createdAt: string;
+};
+
+type CommentWithAuthor = LocalComment & {
+  author?: string;
 };
 
 interface CommentsSectionProps {
   bugId: string;
   loggedUser: User;
+  initialComments?: any[];
+  onCommentAdded?: (comment: CommentWithAuthor) => void;
 }
 
-export function CommentsSection({ bugId, loggedUser }: CommentsSectionProps) {
+export function CommentsSection({ bugId, loggedUser, initialComments = [], onCommentAdded }: CommentsSectionProps) {
   const [comments, setComments] = useState<CommentWithAuthor[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchCommentsWithAuthors = async () => {
-      const rawComments = await CommentService.getAllCommentsByBug(bugId);
-      const commentsWithAuthors = await Promise.all(
-        (rawComments ?? []).map(async (comment) => {
-          const author = await UserService.getById(comment.authorId);
-          return { ...comment, author };
-        })
-      );
-      setComments(commentsWithAuthors);
+    const loadFromProps = async () => {
+      const remapped = (initialComments ?? []).map((c: any) => {
+        const normalized: LocalComment = {
+          id: c.id || c.commentId || String(c.createdAt || Date.now()),
+          bugId: c.bugId || bugId,
+          authorId: c.authorId || c.userId || c.createdBy || "",
+          content: c.content || c.text || c.message || "",
+          createdAt: c.createdAt || c.createdDate || new Date().toISOString(),
+        };
+        const authorName: string | undefined = c.author ?? c.authorName ?? c.createdByName ?? c.userName ?? c.userFullName;
+        return { ...normalized, author: authorName ?? "-" } as CommentWithAuthor;
+      });
+      setComments(remapped);
     };
 
-    fetchCommentsWithAuthors();
-  }, [bugId]);
+    loadFromProps();
+  }, [bugId, initialComments]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
+    setIsSubmitting(true);
+    // Persist via backend
+    try {
+      const resp = await BugService.addCommentAsync(bugId, newComment);
+      // Try to infer created entity from response
+      const created = (resp?.data ?? resp) as any;
 
-    const savedComment = await CommentService.saveComment({
-      bugId,
-      authorId: loggedUser.id,
-      content: newComment,
-      createdAt: new Date().toISOString(),
-    });
+      const local: LocalComment = {
+        id: created?.id || created?.commentId || String(Date.now()),
+        bugId,
+        authorId: String(loggedUser.id),
+        content: created?.content || created?.comment || newComment,
+        createdAt: created?.createdAt || new Date().toISOString(),
+      };
 
-    const author = await UserService.getById(loggedUser.id);
-
-    setComments((prev) => [...prev, { ...savedComment, author }]);
-    setNewComment("");
+  const withAuthor: CommentWithAuthor = { ...local, author: created?.author || (loggedUser.firstName + " " + loggedUser.lastName) };
+      setComments((prev) => [...prev, withAuthor]);
+      onCommentAdded?.(withAuthor);
+    } catch (e) {
+      // As a fallback, still update UI locally
+      const local: CommentWithAuthor = {
+        id: String(Date.now()),
+        bugId,
+        authorId: String(loggedUser.id),
+        content: newComment,
+        createdAt: new Date().toISOString(),
+        author: loggedUser.firstName + " " + loggedUser.lastName,
+      };
+      setComments((prev) => [...prev, local]);
+      onCommentAdded?.(local);
+    } finally {
+      setNewComment("");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -61,7 +97,7 @@ export function CommentsSection({ bugId, loggedUser }: CommentsSectionProps) {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {comment.author?.firstName + " " + comment.author?.lastName}
+                  {comment.author}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {UtilService.formatDate(comment.createdAt)}
@@ -89,7 +125,16 @@ export function CommentsSection({ bugId, loggedUser }: CommentsSectionProps) {
             rows={4}
           />
           <div className="flex justify-end">
-            <Button onClick={handleAddComment}>Publicar Comentário</Button>
+            <Button onClick={handleAddComment} disabled={isSubmitting || !newComment.trim()}>
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  Publicando...
+                </span>
+              ) : (
+                "Publicar Comentário"
+              )}
+            </Button>
           </div>
         </div>
       </div>

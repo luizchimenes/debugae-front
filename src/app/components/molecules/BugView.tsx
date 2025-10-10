@@ -115,6 +115,7 @@ const BugView = ({ bugId }: BugViewProps) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showTrelloModal, setShowTrelloModal] = useState(false);
   const [comments, setComments] = useState<Comment[] | undefined>([]);
+  const [commentCount, setCommentCount] = useState<number>(0);
 
   const loggedUser = useAtomValue(userAtom);
 
@@ -143,7 +144,8 @@ const BugView = ({ bugId }: BugViewProps) => {
 
       console.log(bugData)
 
-      setBug(bugData);
+  setBug(bugData);
+  setCommentCount(bugData?.comments?.length ?? 0);
 
     } catch (error) {
       console.error("Erro ao carregar dados do defeito:", error);
@@ -793,7 +795,7 @@ const BugView = ({ bugId }: BugViewProps) => {
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2 inline" />
-              Comentários ({bug.comments.length})
+              Comentários ({commentCount})
             </button>
             <button
               onClick={() => setActiveTab("trello")}
@@ -994,7 +996,12 @@ const BugView = ({ bugId }: BugViewProps) => {
             )}
 
             {activeTab === "comments" && loggedUser && (
-              <CommentsSection bugId={bugId} loggedUser={loggedUser} />
+              <CommentsSection
+                bugId={bugId}
+                loggedUser={loggedUser}
+                initialComments={bug.comments}
+                onCommentAdded={() => setCommentCount((prev) => prev + 1)}
+              />
             )}
 
             {activeTab === "attachments" && (

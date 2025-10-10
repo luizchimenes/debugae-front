@@ -225,5 +225,13 @@ export const BugService = {
     });
 
     return response.data;
-  }
+  },
+
+  addCommentAsync: async (defectId: string, comment: string): Promise<any> => {
+    const response = await api.patch(`/defects/addComment`, {
+      defectId: defectId,
+      comment: comment,
+    });
+    return response.data;
+  },
 };
