@@ -50,14 +50,30 @@ const ProjectReport = (props: ProjectReportProps) => {
   const gridColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148,163,184,0.25)';
   const statusColors = ['#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#6366F1', '#8B5CF6'];
 
+  // Safe date parsing for timeline labels
+  const tryParseDate = (value: any): Date | null => {
+    if (!value) return null;
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) return d;
+    try {
+      const str = String(value);
+      const datePart = str.split(/[T\s]/)[0];
+      const parts = datePart.split(/[-\/]/);
+      if (parts.length === 3) {
+        const [y, m, day] = parts.map((p) => Number(p));
+        const alt = new Date(y, (m || 1) - 1, day);
+        if (!isNaN(alt.getTime())) return alt;
+      }
+    } catch {}
+    return null;
+  };
+
   useEffect(() => {
-    // Carrega os dados iniciais do relatório ao montar ou quando o projeto mudar
     fetchReportData();
   }, [props.projectId]);
 
   const fetchReportData = async () => {
     try {
-      // Validação do período somente quando o filtro for aplicado manualmente
       if (initialDate && finalDate && new Date(initialDate) > new Date(finalDate)) {
         toast.error('Período inválido: data inicial é maior que a final');
         return;
@@ -230,19 +246,19 @@ const ProjectReport = (props: ProjectReportProps) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="p-4">
             <h3 className="text-sm font-semibold text-gray-500">Total de Defeitos</h3>
-            <p className="text-2xl font-bold">{reportData.metrics.total}</p>
+            <p className="text-2xl font-bold">{reportData.metrics?.total ?? 0}</p>
           </Card>
           <Card className="p-4">
             <h3 className="text-sm font-semibold text-gray-500">Novos</h3>
-            <p className="text-2xl font-bold">{reportData.metrics.new}</p>
+            <p className="text-2xl font-bold">{reportData.metrics?.new ?? 0}</p>
           </Card>
           <Card className="p-4">
             <h3 className="text-sm font-semibold text-gray-500">Em Resolução</h3>
-            <p className="text-2xl font-bold">{reportData.metrics.inProgress}</p>
+            <p className="text-2xl font-bold">{reportData.metrics?.inProgress ?? 0}</p>
           </Card>
           <Card className="p-4">
             <h3 className="text-sm font-semibold text-gray-500">Resolvidos</h3>
-            <p className="text-2xl font-bold">{reportData.metrics.resolved}</p>
+            <p className="text-2xl font-bold">{reportData.metrics?.resolved ?? 0}</p>
           </Card>
         </div>
 
@@ -325,7 +341,13 @@ const ProjectReport = (props: ProjectReportProps) => {
             <div className="h-[300px]">
               <ChartContainer config={{ bugs: { label: 'Defeitos', color: primary } }} className="h-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={reportData.timelineData?.map(d => ({ date: format(new Date(d.date), 'dd/MM'), totalDefects: d.totalDefects }))}>
+                  <AreaChart data={reportData.timelineData?.map(d => {
+                    const parsed = tryParseDate(d.date);
+                    return {
+                      date: parsed ? format(parsed, 'dd/MM') : String(d.date ?? ''),
+                      totalDefects: d.totalDefects,
+                    };
+                  })}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" tick={{ fill: textColor }} />
                     <YAxis tick={{ fill: textColor }} />
