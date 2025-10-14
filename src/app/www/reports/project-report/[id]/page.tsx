@@ -1,14 +1,10 @@
 import ProjectReportTemplate from "@/app/components/templates/report/ProjectReportTemplate";
 import ProtectedRoute from "@/app/utils/ProtectedRoute";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function ProjectCreatePage({ params }: PageProps) {
-  const { id } = params;
+export default async function ProjectCreatePage(props: any) {
+  const maybeParams = props?.params;
+  const params = maybeParams && typeof maybeParams.then === 'function' ? await maybeParams : maybeParams;
+  const id = params?.id as string;
   return (
     <ProtectedRoute>
       <ProjectReportTemplate projectId={id} />
