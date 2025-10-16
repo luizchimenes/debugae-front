@@ -1,17 +1,12 @@
 "use client";
 
 import { X, Loader2, AlertCircle } from "lucide-react";
-import { DefectSeverity } from "@/app/enums/DefectSeverity";
-import { StatusDefeito } from "@/app/enums/StatusDefeito";
-import { DefectCategory } from "@/app/enums/DefectCategory";
-import { DefectEnvironment } from "@/app/enums/DefectEnvironment";
 import React, { useState, useEffect } from "react";
 import { Button, Label } from "../atoms";
 import { BugService } from "@/app/services/bugService";
 import { Bug } from "@/app/models/Bug";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../atoms/SelectComponent";
-import { stat } from "fs";
 import { GetProjectDetailsResponse } from "@/app/models/responses/getProjectDetailsResponse";
 import { ProjectService } from "@/app/services/projectService";
 
@@ -38,18 +33,53 @@ const EditBugModal: React.FC<EditBugModalProps> = ({
   const [stackTrace, setStackTrace] = useState<string>(bug.logStackTrace || "");
   const [updating, setUpdating] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(false);
   const [project, setProject] = useState<GetProjectDetailsResponse | null>(null);
   const [contributorId, setContributorId] = useState("");
 
 
+  // Helpers to normalize incoming values to our Select token values
+  const normalizeEnvironment = (v: any): string => {
+    const val = String(v || '').toLowerCase();
+    if (val === '1' || val.includes('development') || val.includes('desenvolv')) return 'Development';
+    if (val === '2' || val.includes('testing') || val.includes('homolog')) return 'Testing';
+    if (val === '3' || val.includes('production') || val.includes('produ')) return 'Production';
+    return '';
+  };
+  const normalizeSeverity = (v: any): string => {
+    const val = String(v || '').toLowerCase();
+    if (val === '1' || val === 'veryhigh' || val === 'p1' || val.includes('muito alta')) return 'VeryHigh';
+    if (val === '2' || val === 'high' || val === 'p2' || val.includes('alta')) return 'High';
+    if (val === '3' || val === 'medium' || val === 'p3' || val.includes('média') || val.includes('media')) return 'Medium';
+    if (val === '4' || val === 'low' || val === 'p4' || val.includes('baixa')) return 'Low';
+    if (val === '5' || val === 'verylow' || val === 'p5' || val.includes('muito baixa')) return 'VeryLow';
+    return '';
+  };
+  const normalizeStatus = (v: any): string => {
+    const val = String(v || '').toLowerCase().replace(/\s+/g, '');
+    if (val === 'resolved' || val.includes('resolvido')) return 'Resolved';
+    if (val === 'invalid' || val.includes('inválido') || val.includes('invalido')) return 'Invalid';
+    if (val === 'reopened' || val.includes('reaberto')) return 'Reopened';
+    if (val === 'inprogress' || val.includes('emresolucao') || val.includes('emresolução')) return 'InProgress';
+    if (val === 'waitingforuser' || val.includes('aguardandousuario')) return 'WaitingForUser';
+    if (val === 'new' || val.includes('novo')) return 'New';
+    return '';
+  };
+  const normalizeCategory = (v: any): string => {
+    const val = String(v || '').toLowerCase();
+    if (val.includes('functional') || val.includes('funcional')) return 'Functional';
+    if (val.includes('interface')) return 'Interface';
+    if (val.includes('performance')) return 'Performance';
+    if (val.includes('improvement') || val.includes('melhoria')) return 'Improvement';
+    return '';
+  };
+
   useEffect(() => {
     if (bug) {
       setDescription(bug.details?.defectDescription || "");
-      setEnvironment(String(bug.details?.defectEnvironment || ""));
-      setSeverity(String(bug.defectSeverity || ""));
-      setStatus(String(bug.defectStatus || ""));
-      setCategory(String(bug.defectCategory || ""));
+      setEnvironment(normalizeEnvironment(bug.details?.defectEnvironment));
+      setSeverity(normalizeSeverity(bug.defectSeverity));
+      setStatus(normalizeStatus(bug.defectStatus));
+      setCategory(normalizeCategory(bug.defectCategory));
       setCurrentBehavior(bug.details?.actualBehaviour || "");
       setExpectedBehavior(bug.details?.expectedBehaviour || "");
       setStackTrace(bug.logStackTrace || "");
@@ -57,13 +87,10 @@ const EditBugModal: React.FC<EditBugModalProps> = ({
     }
     const fetchProjectDetails = async () => {
       try {
-        setLoading(true);
         const projectDetails = await ProjectService.getProjectDetailsAsync(bug.projectId);
         setProject(projectDetails);
       } catch {
         toast.error("Erro ao carregar detalhes do projeto.");
-      } finally {
-        setLoading(false);
       }
     };
     if (bug) {
@@ -148,6 +175,9 @@ const EditBugModal: React.FC<EditBugModalProps> = ({
       case "severity":
         setSeverity(value);
         break;
+      case "status":
+        setStatus(value);
+        break;
       case "category":
         setCategory(value);
         break;
@@ -167,25 +197,6 @@ const EditBugModal: React.FC<EditBugModalProps> = ({
         break;
     }
   }
-
-  const getStatusText = (status: string): string => {
-      switch (status) {
-        case StatusDefeito.RESOLVIDO:
-          return "Resolvido";
-        case StatusDefeito.INVALIDO:
-          return "Inválido";
-        case StatusDefeito.REABERTO:
-          return "Reaberto";
-        case StatusDefeito.EM_RESOLUCAO:
-          return "Em Resolução";
-        case "InProgress":
-          return "Em Progresso";
-        case StatusDefeito.AGUARDANDO_USUARIO:
-          return "Aguardando Usuário";
-        default:
-          return "Novo";
-      }
-    }
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm backdrop-brightness-50 flex items-center justify-center z-50">

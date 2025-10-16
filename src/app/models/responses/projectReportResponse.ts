@@ -45,4 +45,5 @@ export interface ProjectReportResponse {
   resolutionIndex: number;
   defectByVersion: DefectByVersion[];
   averageResolutionTime: number;
+  invalidDefectsPercentage: number;
 }

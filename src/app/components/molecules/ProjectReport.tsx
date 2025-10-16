@@ -134,6 +134,7 @@ const ProjectReport = (props: ProjectReportProps) => {
           // @ts-ignore backend alternative
           (data as any).averageResolutionTime ?? (data as any).defectResolutionAverageTimeInDays ?? 0,
         resolutionIndex: typeof data.resolutionIndex === 'number' ? data.resolutionIndex : 0,
+        invalidDefectsPercentage: typeof (data as any).invalidDefectsPercentage === 'number' ? (data as any).invalidDefectsPercentage : 0,
         categoryData: (data.categoryData as any[] | undefined)?.map((c: any) => ({
           name: translateCategory(c.name ?? c.category ?? ''),
           value: c.value ?? c.count ?? 0,
@@ -377,7 +378,7 @@ const ProjectReport = (props: ProjectReportProps) => {
           </Card>
 
           <Card className="p-4 col-span-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-2">Índice de Resolução</h3>
                 <p className="text-3xl font-bold text-primary">
@@ -388,6 +389,12 @@ const ProjectReport = (props: ProjectReportProps) => {
                 <h3 className="text-lg font-semibold mb-2">Tempo Médio de Resolução</h3>
                 <p className="text-3xl font-bold text-primary">
                   {formatFixed(reportData.averageResolutionTime)} dias
+                </p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Índice de Inválidos</h3>
+                <p className="text-3xl font-bold text-primary">
+                  {formatPercent(reportData.invalidDefectsPercentage)}%
                 </p>
               </div>
             </div>
