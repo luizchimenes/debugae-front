@@ -345,7 +345,7 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -389,22 +389,6 @@ const ProjectView = ({ projectId }: ProjectViewProps) => {
               </div>
               <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                 <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardDescription>Fechados</CardDescription>
-                <CardTitle className="text-2xl text-gray-600 dark:text-gray-400">
-                  {totalClosed}
-                </CardTitle>
-              </div>
-              <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded-lg">
-                <Check className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               </div>
             </div>
           </CardHeader>
